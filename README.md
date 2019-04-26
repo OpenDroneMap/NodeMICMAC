@@ -1,18 +1,34 @@
-# NodeODM
+# NodeMICMAC
+![DroneMapper](https://dsy5mvbgl2i1x.cloudfront.net/wp-content/uploads/2018/01/dm_logo1_inv.png)
 
-[![Build Status](https://travis-ci.org/OpenDroneMap/NodeODM.svg?branch=master)](https://travis-ci.org/OpenDroneMap/NodeODM)
+NodeMICMAC is a Node.js App and REST API to access [MicMac](https://github.com/micmacIGN/micmac). It exposes an API which is used by [WebODM](https://github.com/OpenDroneMap/WebODM) or other projects.
+This project is sponsored and developed by [DroneMapper](https://dronemapper.com). This repository was originally forked from [NodeODM](https://github.com/OpenDroneMap/NodeODM), which is part of the [OpenDroneMap](https://www.opendronemap.org/) Project.
 
-NodeODM is a Node.js App and REST API to access [ODM](https://github.com/OpenDroneMap/ODM). It exposes an API which is used by [WebODM](https://github.com/OpenDroneMap/WebODM).
+![NodeMICMAC-Screenshot](docs/readme_web.png "NodeMICMAC")
 
-![Alt text](https://user-images.githubusercontent.com/1951843/42737899-ab31bddc-8848-11e8-97e7-4f7e938c7a76.png "NodeODM")
+## Project Status
+- [x] Forked NodeODM
+- [x] Updated README
+- [x] New Dockerfile
+- [x] Add MicMac Source Build
+- [x] Initial Docker & Native Testing
+- [ ] `run.sh` Image Processor
+- [ ] Post Processing
+
+Note: This project will not currently process imagery. Soon!
 
 ## Getting Started
 
-We recommend that you setup NodeODM using [Docker](https://www.docker.com/).
+We recommend that you setup NodeMICMAC using [Docker](https://www.docker.com/).
+
+* Docker image build:
+```
+docker build -t dronemapper/node-micmac
+```
 
 * From the Docker Quickstart Terminal (Windows / OSX) or from the command line (Linux) type:
 ```
-docker run -p 3000:3000 opendronemap/node-opendronemap
+docker run -p 3000:3000 dronemapper/node-micmac
 ```
 
 * If you're on Windows/OSX, find the IP of your Docker machine by running this command from your Docker Quickstart Terminal:
@@ -24,26 +40,26 @@ docker-machine ip
 Linux users can connect to 127.0.0.1.
 
 * Open a Web Browser to `http://<yourDockerMachineIp>:3000`
-* Load [some images](https://github.com/OpenDroneMap/ODM/tree/master/tests/test_data/images)
+* Load [some images](https://dronemapper.com/sample_data/)
 * Press "Start Task"
-* Go for a walk :)
+* Go for a walk or enjoy a pastis! :)
 
-If the computer running NodeODM is using an old or 32bit CPU, you need to compile OpenDroneMap from sources and setup NodeODM natively. You cannot use docker. Docker images work with CPUs with 64-bit extensions, MMX, SSE, SSE2, SSE3 and SSSE3 instruction set support or higher. Seeing a `Illegal instruction` error while processing images is an indication that your CPU is too old. 
+If the computer running NodeMICMAC is using an old or 32bit CPU, you need to compile OpenDroneMap from sources and setup NodeMICMAC natively. You cannot use docker. Docker images work with CPUs with 64-bit extensions, MMX, SSE, SSE2, SSE3 and SSSE3 instruction set support or higher. Seeing a `Illegal instruction` error while processing images is an indication that your CPU is too old. 
 
 ## API Docs
 
-See the [API documentation page](https://github.com/OpenDroneMap/NodeODM/blob/master/docs/index.adoc).
+See the DM [API Documentation Page](http://dronemapper.io/docs/) or ODM [API Documentation Page](https://github.com/OpenDroneMap/NodeODM/blob/master/docs/index.adoc).
 
 ## Run Tasks from the Command Line
 
-You can use [CloudODM](https://github.com/OpenDroneMap/CloudODM) to run tasks with NodeODM from the command line.
+You can use [CloudODM](https://github.com/OpenDroneMap/CloudODM) to run tasks with NodeMICMAC from the command line. _(Untested)_
 
-## Using an External Hard Drive
+## Using an External Hard Drive (Not Recommended/Performance IO Reasons)
 
 If you want to store results on a separate drive, map the `/var/www/data` folder to the location of your drive:
 
 ```bash
-docker run -p 3000:3000 -v /mnt/external_hd:/var/www/data opendronemap/node-opendronemap
+docker run -p 3000:3000 -v /mnt/external_hd:/var/www/data dronemapper/node-micmac
 ```
 
 This can be also used to access the computation results directly from the file system.
@@ -52,7 +68,7 @@ This can be also used to access the computation results directly from the file s
 
 If you are already running [ODM](https://github.com/OpenDroneMap/ODM) on Ubuntu natively you can follow these steps:
 
-1) Install PotreeConverter and LASzip dependency
+1] Install PotreeConverter and LASzip dependency
  
 ```bash
 apt-get install -y libboost-dev libboost-program-options-dev
@@ -72,32 +88,26 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Release -DLASZIP_INCLUDE_DIRS=/staging/LAStools/LASzip/dll -DLASZIP_LIBRARY=/staging/LAStools/LASzip/build/src/liblaszip.a ..
 make && sudo make install
 ```
-2) Install gdal2tiles.py script, node.js and npm dependencies
+2] Install gdal2tiles.py script, node.js and npm dependencies
 
 ```bash
 sudo curl --silent --location https://deb.nodesource.com/setup_6.x | sudo bash -
 sudo apt-get install -y nodejs python-gdal
-git clone https://github.com/OpenDroneMap/NodeODM
-cd NodeODM
+git clone hhttps://github.com/dronemapper-io/NodeMICMAC.git
+cd NodeMICMAC
 npm install
 ```
 
-3) Start NodeODM
+3] Start NodeMICMAC
 
-```bash
+```
 node index.js
 ```
 
-You may need to specify your ODM project path to start the server:
+Use odm_path
 
 ```
-node index.js --odm_path /home/username/OpenDroneMap
-```
-
-If you want to start node ODM on a different port you can do the following:
-
-```
-node index.js --port 8000 --odm_path /home/username/OpenDroneMap
+nodejs index.js --odm_path dm/
 ```
 
 For other command line options you can run:
@@ -148,16 +158,20 @@ While in test mode all calls to OpenDroneMap's code will be simulated (see the /
 
 ### Test Images
 
-You can find some test drone images [here](https://github.com/dakotabenjamin/odm_data).
+You can find some test drone images [here](https://dronemapper.com/sample_data/).
 
 ## What if I need more functionality?
 
-NodeODM is meant to be a lightweight API. If you are looking for a more comprehensive solution to drone mapping, check out [WebODM](https://github.com/OpenDroneMap/WebODM), which uses NodeODM for processing.
+NodeMICMAC is meant to be a lightweight API.
 
 ## Contributing
 
-Make a pull request for small contributions. For big contributions, please open a discussion first. Please use ES6 syntax while writing new Javascript code so that we can keep the code base uniform.
+Make a pull request for small contributions. For big contributions, please open a discussion or issue first. Please use ES6 syntax while writing new Javascript code so that we can keep the code base uniform.
 
 ## Roadmap
 
-See the [list of wanted features](https://github.com/OpenDroneMap/NodeODM/issues?q=is%3Aopen+is%3Aissue+label%3A%22new+feature%22).
+Stay current with upstream MicMac development providing an easy to use interface and API. Roll in upstream ODM API changes into this repo. Test, Process Images, Rinse, Repeat!
+
+## MicMac Version
+
+Cloned: 04-26-2019 Commit: [fec03b2](https://github.com/micmacIGN/micmac/commit/fec03b2b9596886f9b929f5b663bbded3ae591c0)

@@ -1,0 +1,24 @@
+{
+  "--project-path": {
+    "metavar": "<path>",
+    "help": "Path to the project folder"
+  },
+  "--matcher-distance": {
+    "metavar": "<integer>",
+    "help": "Distance threshold in meters to find pre-matching images based on GPS exif data."
+  },
+  "-h": {
+    "action": "help",
+    "default": "==SUPPRESS==",
+    "help": "show this help message and exit"
+  },
+  "--images": {
+    "metavar": "<path>",
+    "help": "Path to input images"
+  },
+  "--version": {
+    "action": "version",
+    "version": "DroneMapper MicMac",
+    "help": "Displays version number and exits. "
+  }
+}

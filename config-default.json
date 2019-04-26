@@ -1,5 +1,5 @@
 {
-	"instance": "node-OpenDroneMap",
+	"instance": "node-MicMac-DroneMapper",
 	"odm_path": "/code",
 
 	"logger": {
