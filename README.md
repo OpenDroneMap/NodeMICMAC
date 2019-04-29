@@ -26,7 +26,7 @@ This list is not by order of importance.
 Note: This project currently creates a geo-referenced DEM and Ortho from our 4th Ave. test imagery (and most likely your imagery). The results are located in their respective directories in UTM projection.
 
 ## Test Data
-[DroneMapper 4th Ave. Reservoir](https://dronemapper.com/software_downloads/4thAve.zip) - 48 Geo-tagged Images DJI Phantom 3 Advanced
+[DroneMapper 4th Ave. Reservoir](https://dronemapper.com/software/4thAve.zip) - 48 Geo-tagged Images DJI Phantom 3 Advanced
 
 ![4th_Images](docs/readme_4th_images.png)
 
