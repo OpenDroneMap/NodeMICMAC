@@ -36,9 +36,29 @@ def config():
                        type=alphanumeric_string,
                        help='Name of Project (i.e subdirectory of projects folder)')
 
+    parser.add_argument('--cores',
+                        metavar='<integer>',
+                        default=4,
+                        type=int,
+                        help='The maximum number of cores to use in processing. '
+                            'Default: %(default)')
+
+    parser.add_argument('--size',
+                        metavar='<integer>',
+                        default=800,
+                        type=int,
+                        help='Scale image width for tie-point extraction. '
+                             'Default: %(default)')
+
+    parser.add_argument('--zoom',
+                        metavar='<integer>',
+                        default=2,
+                        type=int,
+                        help='The level of DEM construction. 2 means 2x native GSD. '
+                             'Default: %(default)')
+
     parser.add_argument('--matcher-distance',
                         metavar='<integer>',
-                        default=75,
                         type=int,
                         help='Distance threshold in meters to find pre-matching '
                              'images based on GPS exif data. Default: %(default)s')

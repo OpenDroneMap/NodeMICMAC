@@ -464,21 +464,28 @@ module.exports = class Task{
     // Reads the contents of the tasks's 
     // images.json and returns its JSON representation
     readImagesDatabase(callback){
-        const imagesDbPath = !config.test ? 
+        const imagesDbPath = !config.test ?
                              path.join(this.getProjectFolderPath(), 'images.json') :
                              path.join('tests', 'processing_results', 'images.json');
-    
-        fs.readFile(imagesDbPath, 'utf8', (err, data) => {
-            if (err) callback(err);
-            else{
-                try{
-                    const json = JSON.parse(data);
-                    callback(null, json);
-                }catch(e){
-                    callback(e);
-                }
+
+        try {
+            if (fs.existsSync(imagesDbPath)) {
+                fs.readFile(imagesDbPath, 'utf8', (err, data) => {
+                    if (err) callback(err);
+                    else{
+                        try{
+                            const json = JSON.parse(data);
+                            callback(null, json);
+                        }catch(e){
+                            callback(e);
+                        }
+                    }
+                });
             }
-        });
+        } catch(err) {
+            logger.info('images.json doesn\'t exist:' + err);
+            callback(null, JSON.parse('{}'));
+        }
     }
 
     callWebhooks(){
