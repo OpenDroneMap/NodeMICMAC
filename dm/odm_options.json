@@ -3,8 +3,26 @@
     "metavar": "<path>",
     "help": "Path to the project folder"
   },
+  "--cores": {
+    "default": "4",
+    "type": "<type 'int'>",
+    "metavar": "<positive integer>",
+    "help": "The maximum number of cores to use in processing. Default: %(default)s"
+  },
+  "--size": {
+    "default": "800",
+    "type": "<type 'int'>",
+    "metavar": "<positive integer>",
+    "help": "Scale image width for tie-point extraction. Default: %(default)s"
+  },
+  "--zoom": {
+    "default": "2",
+    "type": "<type 'int'>",
+    "metavar": "<positive integer>",
+    "help": "The level of DEM construction. 2 means 2x native GSD. Default: %(default)s"
+  },
   "--matcher-distance": {
-    "metavar": "<integer>",
+    "metavar": "<positive integer>",
     "help": "Distance threshold in meters to find pre-matching images based on GPS exif data."
   },
   "-h": {

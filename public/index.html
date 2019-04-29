@@ -53,7 +53,7 @@
                             <label for="taskName">Project Name:</lable> <input type="text" class="form-control" value="" id="taskName" data-bind="attr: {disabled: uploading()}" />
                         </div>
                         <div id="imagesInput" class="form-group" data-bind="visible: mode() === 'file'">
-                            <div id="images">Images and GCP File (optional):</div> <button id="btnSelectFiles" class="btn btn-default btn-sm" data-bind="attr: {disabled: uploading()}">Add Files...</button>
+                            <div id="images">Images:</div> <button id="btnSelectFiles" class="btn btn-default btn-sm" data-bind="attr: {disabled: uploading()}">Add Files...</button>
                             <div data-bind="visible: filesCount() && !uploading()">Selected files: <span data-bind="text: filesCount()"></span></div>
                             <div data-bind="visible: uploading()" class="progress" style="margin-top: 12px;">
                                 <div class="progress-bar progress-bar-success" role="progressbar" data-bind="text: uploadedFiles() + ' / ' + filesCount() + ' files', style: {width: uploadedPercentage()}">

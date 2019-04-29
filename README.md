@@ -7,15 +7,39 @@ This project is sponsored and developed by [DroneMapper](https://dronemapper.com
 ![NodeMICMAC-Screenshot](docs/readme_web.png "NodeMICMAC")
 
 ## Project Status
+This list is not by order of importance.
+
 - [x] Forked NodeODM
 - [x] Updated README
 - [x] New Dockerfile
 - [x] Add MicMac Source Build
 - [x] Initial Docker & Native Testing
-- [ ] `run.sh` Image Processor
+- [x] `run.sh` and `run.py` Image Processor
+- [ ] External and Relative Camera Orientation Exports
+- [ ] Interfaces w/ Other Software (PMVS/OpenSFM/Pix4D/DroneMapper)
+- [ ] Point Cloud
 - [ ] Post Processing
+- [ ] GCP Processing
+- [ ] Oblique Imagery and/or 3D Model
+- [ ] Conform / Rename Outputs to ODM Conventions
 
-Note: This project will not currently process imagery. Soon!
+Note: This project currently creates a geo-referenced DEM and Ortho from our 4th Ave. test imagery (and most likely your imagery). The results are located in their respective directories in UTM projection.
+
+## Test Data
+[DroneMapper 4th Ave. Reservoir](https://dronemapper.com/software_downloads/4thAve.zip) - 48 Geo-tagged Images DJI Phantom 3 Advanced
+
+![4th_Images](docs/readme_4th_images.png)
+
+## Results
+
+![4th_DEM](docs/readme_4th_DEM.PNG)
+![4th_Ortho](docs/readme_4th_Ortho.PNG)
+
+* Results clipped to an AOI and displayed using Global Mapper [GlobalMapper](https://bluemarblegeo.com)
+
+## Mission Planning / Execution
+
+* We recommend using a mission planning application such as MapPilot, DJI GS Pro, or Pix4DMapper.
 
 ## Getting Started
 
@@ -23,7 +47,7 @@ We recommend that you setup NodeMICMAC using [Docker](https://www.docker.com/).
 
 * Docker image build:
 ```
-docker build -t dronemapper/node-micmac
+docker build -t dronemapper/node-micmac .
 ```
 
 * From the Docker Quickstart Terminal (Windows / OSX) or from the command line (Linux) type:
@@ -40,7 +64,7 @@ docker-machine ip
 Linux users can connect to 127.0.0.1.
 
 * Open a Web Browser to `http://<yourDockerMachineIp>:3000`
-* Load [some images](https://dronemapper.com/sample_data/)
+* Load [some images with geo-tags](https://dronemapper.com/sample_data/)
 * Press "Start Task"
 * Go for a walk or enjoy a pastis! :)
 
@@ -101,25 +125,25 @@ npm install
 3] Start NodeMICMAC
 
 ```
-node index.js
+nodejs index.js
 ```
 
 Use odm_path
 
 ```
-nodejs index.js --odm_path dm/
+nodejs index.js --odm_path /home/projects/NodeMICMAC/dm/
 ```
 
 For other command line options you can run:
 
 ```
-node index.js --help
+nodejs index.js --help
 ```
 
 You can also specify configuration values via a JSON file:
 
 ```
-node index.js --config config.default.json
+nodejs index.js --config config.default.json
 ```
 
 Command line arguments always take precedence over the configuration file.
@@ -167,6 +191,8 @@ NodeMICMAC is meant to be a lightweight API.
 ## Contributing
 
 Make a pull request for small contributions. For big contributions, please open a discussion or issue first. Please use ES6 syntax while writing new Javascript code so that we can keep the code base uniform.
+
+You can also contact us [here](https://dronemapper.com/contact)
 
 ## Roadmap
 

@@ -77,6 +77,8 @@ COPY dm/opendm /code/opendm
 COPY dm/odm_options.json /code
 COPY dm/settings.yaml /code
 COPY dm/VERSION /code
+COPY dm/run.sh /code
+COPY dm/run.py /code
 
 #RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
