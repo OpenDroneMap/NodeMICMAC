@@ -168,10 +168,13 @@ if __name__ == '__main__':
             'zoom': args.zoom,
             'mm3d': mm3d
         }
-        system.run('{mm3d} Malt Ortho .*.{ext} Ground_UTM EZA=1 ZoomI=64 ZoomF={zoom} DefCor=0.005 NbProc={num_cores}'.format(**kwargs_malt))
+        system.run('{mm3d} Malt Ortho .*.{ext} Ground_UTM EZA=1 ZoomI=64 ZoomF={zoom} NbVI=2 HrOr=1 RoundResol=0 ResolOrtho=1 DefCor=0.0005 NbProc={num_cores}'.format(**kwargs_malt))
 
         # build ORTHO
         system.run('{mm3d} Tawny Ortho-MEC-Malt RadiomEgal=1'.format(**kwargs_malt))
+
+        # point cloud
+        system.run('{mm3d} Nuage2Ply MEC-Malt/NuageImProf_STD-MALT_Etape_8.xml Attr=Ortho-MEC-Malt/Orthophotomosaic.tif 64B=1 Out=DroneMapper.ply'.format(**kwargs_malt))
 
         exit(0)
 

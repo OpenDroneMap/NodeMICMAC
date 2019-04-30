@@ -17,11 +17,12 @@ This list is not by order of importance.
 - [x] `run.sh` and `run.py` Image Processor
 - [ ] External and Relative Camera Orientation Exports
 - [ ] Interfaces w/ Other Software (PMVS/OpenSFM/Pix4D/DroneMapper)
-- [ ] Point Cloud
+- [x] Point Cloud
 - [ ] Post Processing
 - [ ] GCP Processing
 - [ ] Oblique Imagery and/or 3D Model
 - [ ] Conform / Rename Outputs to ODM Conventions
+- [ ] Wire up 2D and Potree Tile Creation
 
 Note: This project currently creates a geo-referenced DEM and Ortho from our 4th Ave. test imagery (and most likely your imagery). The results are located in their respective directories in UTM projection.
 
