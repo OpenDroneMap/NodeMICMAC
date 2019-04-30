@@ -129,7 +129,8 @@ if __name__ == '__main__':
             log.MM_INFO('Image pairs by auto-distance')
             system.run('{mm3d} OriConvert "#F=N X Y Z" GpsCoordinatesFromExif.txt RAWGNSS_N ChSys=DegreeWGS84@RTLFromExif.xml MTD1=1 NameCple=dronemapperPair.xml DN='.format(**kwargs_ori))
 
-        # tie-points (SIFT default [patented] - not for commercial use)
+        # tie-points SIFT w/ ANN
+        # comment by @pierotofy - The SIFT patent has expired, so this can probably be used just fine in all settings. https://piero.dev/2019/04/the-sift-patent-has-expired/
         kwargs_tapioca = {
             'num_cores': args.cores,
             'image_size': args.size,
