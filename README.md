@@ -93,10 +93,15 @@ This can be also used to access the computation results directly from the file s
 
 If you are already running [ODM](https://github.com/OpenDroneMap/ODM) on Ubuntu natively you can follow these steps:
 
+* You may need to step through the Dockerfile and install missing dependencies listed there to install natively.
+
 1] Install PotreeConverter and LASzip dependency
  
 ```bash
-apt-get install -y libboost-dev libboost-program-options-dev
+apt-get install -y libboost-dev libboost-program-options-dev exiftool
+
+pip install Shapely
+pip install utm
 
 mkdir /staging
 git clone https://github.com/pierotofy/LAStools /staging/LAStools

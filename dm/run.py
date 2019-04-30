@@ -55,13 +55,17 @@ def get_projection(image_type):
     return {'utm_zone': utm_zone, 'hemisphere': hemisphere}
 
 
-def create_sysutm_xml(utm_zone):
+def create_sysutm_xml(projection):
     '''
     Generate SysUTM.xml
     :param utm_zone:
     :return: write xml
     '''
-    proj = '+proj=utm +zone={} +ellps=WGS84 +datum=WGS84 +units=m +no_defs'.format(utm_zone)
+    if projection['hemisphere'] == 'north':
+        proj = '+proj=utm +zone={} +ellps=WGS84 +datum=WGS84 +units=m +no_defs'.format(projection['utm_zone'])
+    else:
+        proj = '+proj=utm +zone={} +ellps=WGS84 +south +datum=WGS84 +units=m +no_defs'.format(projection['utm_zone'])
+
     with open('SysUTM.xml', 'a') as xml:
         xml.write('<SystemeCoord>\n')
         xml.write('\t<BSC>\n')
@@ -103,7 +107,7 @@ if __name__ == '__main__':
         log.MM_INFO(image_ext)
         log.MM_INFO(projection)
 
-        create_sysutm_xml(projection['utm_zone'])
+        create_sysutm_xml(projection)
 
         # generate xif to gps and xif to xml
         kwargs_gps2txt = {
