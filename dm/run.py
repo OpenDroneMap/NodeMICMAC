@@ -10,6 +10,7 @@ from shapely.geometry import Point
 
 import os
 import utm
+import glob
 
 
 def get_image_type():
@@ -28,7 +29,7 @@ def get_projection(image_type):
     :param image_type:
     :return: utm_zone, hemisphere
     '''
-    Image = namedtuple('UAVImage', ['image', 'point', 'altitude'])
+    Image = namedtuple('Image', ['image', 'point', 'altitude'])
 
     kwargs = {
         'image_type': image_type
@@ -59,7 +60,7 @@ def create_sysutm_xml(projection):
     '''
     Generate SysUTM.xml
     :param utm_zone:
-    :return: write xml
+    :return: write xml, return proj
     '''
     if projection['hemisphere'] == 'north':
         proj = '+proj=utm +zone={} +ellps=WGS84 +datum=WGS84 +units=m +no_defs'.format(projection['utm_zone'])
@@ -77,6 +78,51 @@ def create_sysutm_xml(projection):
         xml.write('\t</BSC>\n')
         xml.write('</SystemeCoord>\n')
     xml.close()
+    return proj
+
+
+def gdal_translate(proj_str, src, dst):
+    '''
+    Execute gdal_translate
+    :param proj_str: projection string
+    :param src: input tif
+    :param dst: output tif
+    :return:
+    '''
+    kwargs = {
+        'tiled': '-co TILED=yes',
+        'compress': 'LZW',
+        'predictor': '-co PREDICTOR=2',
+        'proj': proj_str,
+        'bigtiff': 'YES',
+        'src': src,
+        'dst': dst,
+        'max_memory': 2048,
+        'threads': args.cores
+    }
+
+    system.run('gdal_translate '
+        '{tiled} '
+        '-co BIGTIFF={bigtiff} '
+        '-co COMPRESS={compress} '
+        '{predictor} '
+        '-co BLOCKXSIZE=512 '
+        '-co BLOCKYSIZE=512 '
+        '-co NUM_THREADS={threads} '
+        '-a_srs \"{proj}\" '
+        '--config GDAL_CACHEMAX {max_memory} '
+        '{src} {dst}'.format(**kwargs))
+
+
+def get_last_etape(file_str):
+    '''
+    Get last etape or step file based on args.zoom
+    :return: filename
+    '''
+    if glob.glob(file_str):
+        etape_files = glob.glob(file_str)
+        etape_files.sort(key=lambda f: int(filter(str.isdigit, f)))
+        return etape_files[-1]
 
 
 # RUN
@@ -87,8 +133,8 @@ if __name__ == '__main__':
     log.MM_INFO('Initializing NodeMICMAC app - %s' % system.now())
     log.MM_INFO(args)
 
-    projectDir = io.join_paths(args.project_path, args.name)
-    imageDir = io.join_paths(projectDir, 'images')
+    project_dir = io.join_paths(args.project_path, args.name)
+    image_dir = io.join_paths(project_dir, 'images')
 
     IN_DOCKER = os.environ.get('DEBIAN_FRONTEND', False)
 
@@ -99,7 +145,13 @@ if __name__ == '__main__':
 
     try:
         log.MM_INFO('Starting..')
-        os.chdir(imageDir)
+        os.chdir(image_dir)
+
+        # create output directories (match ODM conventions for backward compatibility, even though this is MicMac)
+        odm_dirs = ['odm_orthophoto', 'odm_dem', 'dsm_tiles',
+                    'orthophoto_tiles', 'potree_pointcloud', 'odm_georeferencing']
+        for odm_dir in odm_dirs:
+            system.mkdir_p(io.join_paths(project_dir, odm_dir))
 
         image_ext = get_image_type()
         projection = get_projection(image_ext)
@@ -107,7 +159,7 @@ if __name__ == '__main__':
         log.MM_INFO(image_ext)
         log.MM_INFO(projection)
 
-        create_sysutm_xml(projection)
+        proj_str = create_sysutm_xml(projection)
 
         # generate xif to gps and xif to xml
         kwargs_gps2txt = {
@@ -124,13 +176,17 @@ if __name__ == '__main__':
         }
         if args.matcher_distance:
             log.MM_INFO('Image pairs by distance: {}'.format(args.matcher_distance))
-            system.run('{mm3d} OriConvert "#F=N X Y Z" GpsCoordinatesFromExif.txt RAWGNSS_N ChSys=DegreeWGS84@RTLFromExif.xml MTD1=1 NameCple=dronemapperPair.xml DN={distance}'.format(**kwargs_ori))
+            system.run('{mm3d} OriConvert "#F=N X Y Z" GpsCoordinatesFromExif.txt RAWGNSS_N '
+                'ChSys=DegreeWGS84@RTLFromExif.xml MTD1=1 NameCple=dronemapperPair.xml '
+                'DN={distance}'.format(**kwargs_ori))
         else:
             log.MM_INFO('Image pairs by auto-distance')
-            system.run('{mm3d} OriConvert "#F=N X Y Z" GpsCoordinatesFromExif.txt RAWGNSS_N ChSys=DegreeWGS84@RTLFromExif.xml MTD1=1 NameCple=dronemapperPair.xml DN='.format(**kwargs_ori))
+            system.run('{mm3d} OriConvert "#F=N X Y Z" GpsCoordinatesFromExif.txt RAWGNSS_N '
+                'ChSys=DegreeWGS84@RTLFromExif.xml MTD1=1 NameCple=dronemapperPair.xml DN='.format(**kwargs_ori))
 
         # tie-points SIFT w/ ANN
-        # comment by @pierotofy - The SIFT patent has expired, so this can probably be used just fine in all settings. https://piero.dev/2019/04/the-sift-patent-has-expired/
+        # comment by @pierotofy - The SIFT patent has expired, so this can probably be used just fine in all settings.
+        # https://piero.dev/2019/04/the-sift-patent-has-expired/
         kwargs_tapioca = {
             'num_cores': args.cores,
             'image_size': args.size,
@@ -138,7 +194,8 @@ if __name__ == '__main__':
         }
         system.run('{mm3d} Tapioca File dronemapperPair.xml {image_size} ByP={num_cores}'.format(**kwargs_tapioca))
 
-        # camera calibration and initial bundle block adjustment (RadialStd is the less accurate but can be more robust vs. Fraser/others)
+        # camera calibration and initial bundle block adjustment (RadialStd is less accurate but can
+        # be more robust vs. Fraser/others)
         kwargs_tapas = {
             'ext': image_ext,
             'mm3d': mm3d
@@ -157,7 +214,8 @@ if __name__ == '__main__':
             'ext': image_ext,
             'mm3d': mm3d
         }
-        system.run('{mm3d} Campari .*.{ext} Ground_Init_RTL Ground_RTL EmGPS=[RAWGNSS_N,5] AllFree=1'.format(**kwargs_campari))
+        system.run('{mm3d} Campari .*.{ext} Ground_Init_RTL Ground_RTL '
+            'EmGPS=[RAWGNSS_N,5] AllFree=1'.format(**kwargs_campari))
 
         # change projection and system coords to UTM from relative
         kwargs_chg = {
@@ -173,13 +231,30 @@ if __name__ == '__main__':
             'zoom': args.zoom,
             'mm3d': mm3d
         }
-        system.run('{mm3d} Malt Ortho .*.{ext} Ground_UTM EZA=1 ZoomI=64 ZoomF={zoom} NbVI=2 HrOr=1 RoundResol=0 ResolOrtho=1 DefCor=0.0005 NbProc={num_cores}'.format(**kwargs_malt))
+        system.run('{mm3d} Malt Ortho .*.{ext} Ground_UTM EZA=1 ZoomI=64 ZoomF={zoom} NbVI=2 HrOr=1 '
+            'RoundResol=0 ResolOrtho=1 DefCor=0.0005 NbProc={num_cores}'.format(**kwargs_malt))
 
         # build ORTHO
         system.run('{mm3d} Tawny Ortho-MEC-Malt RadiomEgal=1'.format(**kwargs_malt))
 
-        # point cloud
-        system.run('{mm3d} Nuage2Ply MEC-Malt/NuageImProf_STD-MALT_Etape_8.xml Attr=Ortho-MEC-Malt/Orthophotomosaic.tif 64B=1 Out=DroneMapper.ply'.format(**kwargs_malt))
+        # build PLY
+        kwargs_nuage = {
+            'mm3d': mm3d,
+            'ply': io.join_paths(project_dir, 'odm_georeferencing/odm_georeferenced_model.ply'),
+            'nuage': get_last_etape('MEC-Malt/NuageImProf_STD-MALT_Etape_*.xml')
+        }
+        system.run('{mm3d} Nuage2Ply {nuage} Attr=Ortho-MEC-Malt/Orthophotomosaic.tif '
+            '64B=1 Out={ply}'.format(**kwargs_nuage))
+
+        # apply srs and geo projection to ORTHO (UTM) and write to odm_orthophoto/
+        gdal_translate(proj_str,
+                       io.join_paths(image_dir, 'Ortho-MEC-Malt/Orthophotomosaic.tif'),
+                       io.join_paths(project_dir, 'odm_orthophoto/odm_orthophoto.tif'))
+
+        # apply srs and geo projection to DEM (UTM) and write to odm_dem/
+        gdal_translate(proj_str,
+                       io.join_paths(image_dir, get_last_etape('MEC-Malt/Z_Num*_DeZoom{}*.tif'.format(args.zoom))),
+                       io.join_paths(project_dir, 'odm_dem/dsm.tif'))
 
         exit(0)
 

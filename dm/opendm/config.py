@@ -41,27 +41,27 @@ def config():
                         default=4,
                         type=int,
                         help='The maximum number of cores to use in processing. '
-                            'Default: %(default)')
+                            'Default: 4')
 
     parser.add_argument('--size',
                         metavar='<integer>',
                         default=800,
                         type=int,
                         help='Scale image width for tie-point extraction. '
-                             'Default: %(default)')
+                             'Default: 800')
 
     parser.add_argument('--zoom',
                         metavar='<integer>',
                         default=2,
                         type=int,
                         help='The level of DEM construction. 2 means 2x native GSD. '
-                             'Default: %(default)')
+                             'Default: 2 Values: 1, 2, 4, 8')
 
     parser.add_argument('--matcher-distance',
                         metavar='<integer>',
                         type=int,
                         help='Distance threshold in meters to find pre-matching '
-                             'images based on GPS exif data. Default: %(default)s')
+                             'images based on GPS exif data. Default: 0')
 
     parser.add_argument('--version',
                         action='version',
