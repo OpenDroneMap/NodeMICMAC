@@ -6,6 +6,8 @@ This project is sponsored and developed by [DroneMapper](https://dronemapper.com
 
 ![NodeMICMAC-Screenshot](docs/readme_web.png "NodeMICMAC")
 
+| ![GitHub top language](https://img.shields.io/github/languages/top/dronemapper-io/NodeMICMAC.svg) | ![GitHub issues](https://img.shields.io/github/issues/dronemapper-io/NodeMICMAC.svg) | ![Docker Build Status](https://img.shields.io/docker/build/dronemapper/node-micmac.svg)  | ![Website](https://img.shields.io/website/https/dronemapper.com.svg)  |
+|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|---|---|
 ## Project Status
 This list is not by order of importance.
 
@@ -15,14 +17,19 @@ This list is not by order of importance.
 - [x] Add MicMac Source Build
 - [x] Initial Docker & Native Testing
 - [x] `run.sh` and `run.py` Image Processor
+- [x] Digital Elevation Model Creation
+- [x] Orthomosaic Creation
 - [ ] External and Relative Camera Orientation Exports
 - [ ] Interfaces w/ Other Software (PMVS/OpenSFM/Pix4D/DroneMapper)
 - [x] Point Cloud
-- [ ] Post Processing
+- [x] Post Processing
 - [ ] GCP Processing
 - [ ] Oblique Imagery and/or 3D Model
-- [ ] Conform / Rename Outputs to ODM Conventions
-- [ ] Wire up 2D and Potree Tile Creation
+- [x] Conform / Rename Outputs to ODM Conventions
+- [x] Wire Up 2D and Potree Tile Creation
+- [ ] Export Undistorted Images
+- [ ] Utilize RPY Omega Phi Kappa
+- [ ] Update Tests
 
 Note: This project currently creates a geo-referenced DEM and Ortho from our 4th Ave. test imagery (and most likely your imagery). The results are located in their respective directories in UTM projection.
 
@@ -178,13 +185,13 @@ You can monitor the process using `pm2 status`.
 
 ### Test Mode
 
-If you want to make a contribution, but don't want to setup OpenDroneMap, or perhaps you are working on a Windows machine, or if you want to run automated tests, you can turn test mode on:
+If you want to make a contribution, but don't want to setup OpenDroneMap or MICMAC, or perhaps you are working on a Windows machine, or if you want to run automated tests, you can turn test mode on:
 
 ```
 node index.js --test
 ```
 
-While in test mode all calls to OpenDroneMap's code will be simulated (see the /tests directory for the mock data that is returned).
+While in test mode all calls to OpenDroneMap/MICMAC's code will be simulated (see the /tests directory for the mock data that is returned).
 
 ### Test Images
 
