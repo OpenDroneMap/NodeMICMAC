@@ -27,8 +27,11 @@ This list is not by order of importance.
 - [ ] Oblique Imagery and/or 3D Model
 - [x] Conform / Rename Outputs to ODM Conventions
 - [x] Wire Up 2D and Potree Tile Creation
+- [x] Multi-Scale Tie-Point Generation (Similar to Photoscan)
 - [ ] Export Undistorted Images
 - [ ] Utilize RPY Omega Phi Kappa
+- [ ] Sparse Point Cloud w/ Camera Position
+- [ ] Point Cloud w/ Image Ground Footprints 
 - [ ] Update Tests
 
 Note: This project currently creates a geo-referenced DEM and Ortho from our 4th Ave. test imagery (and most likely your imagery). The results are located in their respective directories in UTM projection.
@@ -77,6 +80,35 @@ Linux users can connect to 127.0.0.1.
 * Go for a walk or enjoy a pastis! :)
 
 If the computer running NodeMICMAC is using an old or 32bit CPU, you need to compile OpenDroneMap from sources and setup NodeMICMAC natively. You cannot use docker. Docker images work with CPUs with 64-bit extensions, MMX, SSE, SSE2, SSE3 and SSSE3 instruction set support or higher. Seeing a `Illegal instruction` error while processing images is an indication that your CPU is too old. 
+
+## API Options / Command Line Parameters
+
+```bash
+positional arguments:
+  <project name>        Name of Project (i.e subdirectory of projects folder)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --images <path>, -i <path>
+                        Path to input images
+  --project-path <path>
+                        Path to the project folder
+  --max-concurrency <integer>
+                        The maximum number of cores to use in processing.
+                        Default: 4
+  --resize-to <integer>
+                        Scale image width for tie-point extraction. Default:
+                        800
+  --zoom <integer>      The level of DEM construction. 2 means 2x native GSD.
+                        Default: 2 Values: 1, 2, 4, 8
+  --matcher-distance <integer>
+                        Distance threshold in meters to find pre-matching
+                        images based on GPS exif data. Default: 0 (use auto-distance)
+  --multi-scale         Uses an image file pair based multi-scale tie-point
+                        generation routine similar to Photoscan.
+  --version             Displays version number and exits.
+
+```
 
 ## API Docs
 

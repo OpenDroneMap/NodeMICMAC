@@ -3,13 +3,13 @@
     "metavar": "<path>",
     "help": "Path to the project folder"
   },
-  "--cores": {
+  "--max-concurrency": {
     "default": "4",
     "type": "<type 'int'>",
     "metavar": "<positive integer>",
     "help": "The maximum number of cores to use in processing. Default: 4"
   },
-  "--size": {
+  "--resize-to": {
     "default": "800",
     "type": "<type 'int'>",
     "metavar": "<positive integer>",
@@ -24,6 +24,11 @@
   "--matcher-distance": {
     "metavar": "<positive integer>",
     "help": "Distance threshold in meters to find pre-matching images based on GPS exif data."
+  },
+  "--multi-scale":{
+    "action":"store_true",
+    "default":"False",
+    "help":"Uses an image file pair based multi-scale tie-point generation routine similar to Photoscan."
   },
   "-h": {
     "action": "help",

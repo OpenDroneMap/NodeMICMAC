@@ -36,14 +36,14 @@ def config():
                        type=alphanumeric_string,
                        help='Name of Project (i.e subdirectory of projects folder)')
 
-    parser.add_argument('--cores',
+    parser.add_argument('--max-concurrency',
                         metavar='<integer>',
                         default=4,
                         type=int,
                         help='The maximum number of cores to use in processing. '
                             'Default: 4')
 
-    parser.add_argument('--size',
+    parser.add_argument('--resize-to',
                         metavar='<integer>',
                         default=800,
                         type=int,
@@ -62,6 +62,12 @@ def config():
                         type=int,
                         help='Distance threshold in meters to find pre-matching '
                              'images based on GPS exif data. Default: 0')
+
+    parser.add_argument('--multi-scale',
+                        action='store_true',
+                        default=False,
+                        help='Uses an image file pair based multi-scale tie-point '
+                             'generation routine similar to Photoscan.')
 
     parser.add_argument('--version',
                         action='version',

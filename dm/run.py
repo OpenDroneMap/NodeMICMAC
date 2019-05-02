@@ -98,7 +98,7 @@ def gdal_translate(proj_str, src, dst):
         'src': src,
         'dst': dst,
         'max_memory': 2048,
-        'threads': args.cores
+        'threads': args.max_concurrency
     }
 
     system.run('gdal_translate '
@@ -187,12 +187,18 @@ if __name__ == '__main__':
         # tie-points SIFT w/ ANN
         # comment by @pierotofy - The SIFT patent has expired, so this can probably be used just fine in all settings.
         # https://piero.dev/2019/04/the-sift-patent-has-expired/
+        mulscale_size = int(args.resize_to * 2)
         kwargs_tapioca = {
-            'num_cores': args.cores,
-            'image_size': args.size,
+            'num_cores': args.max_concurrency,
+            'image_size': args.resize_to,
+            'mulscale_size': mulscale_size,
             'mm3d': mm3d
         }
-        system.run('{mm3d} Tapioca File dronemapperPair.xml {image_size} ByP={num_cores}'.format(**kwargs_tapioca))
+        if args.multi_scale:
+            system.run('{mm3d} Tapioca MulScaleFile dronemapperPair.xml '
+                '{image_size} {mulscale_size} ByP={num_cores}'.format(**kwargs_tapioca))
+        else:
+            system.run('{mm3d} Tapioca File dronemapperPair.xml {image_size} ByP={num_cores}'.format(**kwargs_tapioca))
 
         # camera calibration and initial bundle block adjustment (RadialStd is less accurate but can
         # be more robust vs. Fraser/others)
@@ -226,7 +232,7 @@ if __name__ == '__main__':
 
         # build DEM
         kwargs_malt = {
-            'num_cores': args.cores,
+            'num_cores': args.max_concurrency,
             'ext': image_ext,
             'zoom': args.zoom,
             'mm3d': mm3d
