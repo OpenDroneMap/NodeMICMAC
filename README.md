@@ -6,7 +6,7 @@ This project is sponsored and developed by [DroneMapper](https://dronemapper.com
 
 ![NodeMICMAC-Screenshot](docs/readme_web.png "NodeMICMAC")
 
-| ![GitHub top language](https://img.shields.io/github/languages/top/dronemapper-io/NodeMICMAC.svg) | ![GitHub issues](https://img.shields.io/github/issues/dronemapper-io/NodeMICMAC.svg) | ![Docker Build Status](https://img.shields.io/docker/build/dronemapper/node-micmac.svg)  | ![Website](https://img.shields.io/website/https/dronemapper.com.svg)  |
+| ![GitHub top language](https://img.shields.io/github/languages/top/dronemapper-io/NodeMICMAC.svg) | ![GitHub issues](https://img.shields.io/github/issues/dronemapper-io/NodeMICMAC.svg) | ![Docker Build Status](https://img.shields.io/docker/cloud/build/dronemapper/node-micmac.svg)  | ![Website](https://img.shields.io/website/https/dronemapper.com.svg)  |
 |---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|---|---|
 ## Project Status
 This list is not by order of importance.
