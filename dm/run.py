@@ -192,10 +192,11 @@ if __name__ == '__main__':
             'num_cores': args.max_concurrency,
             'image_size': args.resize_to,
             'mulscale_size': mulscale_size,
+            'ext': image_ext,
             'mm3d': mm3d
         }
         if args.multi_scale:
-            system.run('{mm3d} Tapioca MulScaleFile dronemapperPair.xml '
+            system.run('{mm3d} Tapioca MulScaleFile dronemapperPair.xml .*.{ext} '
                 '{image_size} {mulscale_size} ByP={num_cores}'.format(**kwargs_tapioca))
         else:
             system.run('{mm3d} Tapioca File dronemapperPair.xml {image_size} ByP={num_cores}'.format(**kwargs_tapioca))
