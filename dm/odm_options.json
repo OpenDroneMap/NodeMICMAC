@@ -30,6 +30,16 @@
     "default":"False",
     "help":"Uses an image file pair based multi-scale tie-point generation routine similar to Photoscan."
   },
+  "--camera-cloud":{
+    "action":"store_true",
+    "default":"False",
+    "help":"Creates a sparse point cloud with camera positions."
+  },
+  "--image-footprint":{
+    "action":"store_true",
+    "default":"False",
+    "help":"Creates a point cloud and geojson with image footprints."
+  },
   "-h": {
     "action": "help",
     "default": "==SUPPRESS==",

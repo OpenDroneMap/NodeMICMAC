@@ -30,8 +30,8 @@ This list is not by order of importance.
 - [x] Multi-Scale Tie-Point Generation (Similar to Photoscan)
 - [ ] Export Undistorted Images
 - [ ] Utilize RPY Omega Phi Kappa
-- [ ] Sparse Point Cloud w/ Camera Position
-- [ ] Point Cloud w/ Image Ground Footprints 
+- [x] Sparse Point Cloud w/ Camera Position
+- [x] Point Cloud w/ Image Ground Footprints 
 - [ ] Update Tests
 
 Note: This project currently creates a geo-referenced DEM and Ortho from our 4th Ave. test imagery (and most likely your imagery). The results are located in their respective directories in UTM projection.
@@ -106,6 +106,8 @@ optional arguments:
                         images based on GPS exif data. Default: 0 (use auto-distance)
   --multi-scale         Uses an image file pair based multi-scale tie-point
                         generation routine similar to Photoscan.
+  --camera-cloud        Creates a sparse point cloud with camera positions
+  --image-footprint     Creates a point cloud and geojson with image footprints
   --version             Displays version number and exits.
 
 ```

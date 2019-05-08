@@ -231,6 +231,24 @@ if __name__ == '__main__':
         }
         system.run('{mm3d} ChgSysCo .*.{ext} Ground_RTL RTLFromExif.xml@SysUTM.xml Ground_UTM'.format(**kwargs_chg))
 
+        # camera cloud
+        if args.camera_cloud:
+            kwargs_camera_cloud = {
+                'ext': image_ext,
+                'mm3d': mm3d,
+                'ply': '../odm_georeferencing/camera_cloud_utm.ply' # use ../ here for work-around to AperiCloud bug
+            }
+            system.run('{mm3d} AperiCloud .*.{ext} Ground_UTM Out={ply} Bin=0'.format(**kwargs_camera_cloud))
+
+        # image footprints
+        if args.image_footprint:
+            kwargs_image_footprint = {
+                'ext': image_ext,
+                'mm3d': mm3d,
+                'ply': io.join_paths(project_dir, 'odm_georeferencing/image_footprint_wgs84.ply')
+            }
+            system.run('{mm3d} DroneFootPrint .*.{ext} Ground_UTM Out={ply} CodeProj=4326 Resol=[2000,0]'.format(**kwargs_image_footprint))
+
         # build DEM
         kwargs_malt = {
             'num_cores': args.max_concurrency,

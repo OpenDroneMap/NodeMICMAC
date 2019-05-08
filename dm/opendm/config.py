@@ -69,6 +69,16 @@ def config():
                         help='Uses an image file pair based multi-scale tie-point '
                              'generation routine similar to Photoscan.')
 
+    parser.add_argument('--camera-cloud',
+                        action='store_true',
+                        default=False,
+                        help='Creates a sparse point cloud with camera positions')
+
+    parser.add_argument('--image-footprint',
+                        action='store_true',
+                        default=False,
+                        help='Creates a point cloud and geojson with image footprints')
+
     parser.add_argument('--version',
                         action='version',
                         version='DroneMapper MicMac {0}'.format(__version__),
