@@ -1,5 +1,5 @@
 # NodeMICMAC
-![DroneMapper](https://dsy5mvbgl2i1x.cloudfront.net/wp-content/uploads/2018/01/dm_logo1_inv.png)
+<img src="https://dsy5mvbgl2i1x.cloudfront.net/wp-content/uploads/2018/01/dm_logo1_inv.png" width="300px"><br/><br/>
 
 NodeMICMAC is a Node.js App and REST API to access [MicMac](https://github.com/micmacIGN/micmac). It exposes an API which is used by [WebODM](https://github.com/OpenDroneMap/WebODM) or other projects.
 This project is sponsored and developed by [DroneMapper](https://dronemapper.com). This repository was originally forked from [NodeODM](https://github.com/OpenDroneMap/NodeODM), which is part of the [OpenDroneMap](https://www.opendronemap.org/) Project.
@@ -8,6 +8,7 @@ This project is sponsored and developed by [DroneMapper](https://dronemapper.com
 
 | ![GitHub top language](https://img.shields.io/github/languages/top/dronemapper-io/NodeMICMAC.svg) | ![GitHub issues](https://img.shields.io/github/issues/dronemapper-io/NodeMICMAC.svg) | ![Docker Build Status](https://img.shields.io/docker/cloud/build/dronemapper/node-micmac.svg)  | ![Website](https://img.shields.io/website/https/dronemapper.com.svg)  |
 |---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|---|---|
+
 ## Project Status
 This list is not by order of importance.
 
@@ -33,6 +34,10 @@ This list is not by order of importance.
 - [x] Sparse Point Cloud w/ Camera Position
 - [x] Point Cloud w/ Image Ground Footprints 
 - [ ] Update Tests
+- [x] Initial Integration w/ WebODM
+- [ ] Full Integration w/ WebODM
+- [ ] Progress Reporting
+- [ ] Staged Restart Ability
 
 Note: This project currently creates a geo-referenced DEM and Ortho from our 4th Ave. test imagery (and most likely your imagery). The results are located in their respective directories in UTM projection.
 
@@ -63,7 +68,7 @@ docker build -t dronemapper/node-micmac .
 
 * From the Docker Quickstart Terminal (Windows / OSX) or from the command line (Linux) type:
 ```
-docker run -p 3000:3000 dronemapper/node-micmac
+docker run -p 3001:3001 dronemapper/node-micmac
 ```
 
 * If you're on Windows/OSX, find the IP of your Docker machine by running this command from your Docker Quickstart Terminal:
@@ -74,7 +79,7 @@ docker-machine ip
 
 Linux users can connect to 127.0.0.1.
 
-* Open a Web Browser to `http://<yourDockerMachineIp>:3000`
+* Open a Web Browser to `http://<yourDockerMachineIp>:3001`
 * Load [some images with geo-tags](https://dronemapper.com/sample_data/)
 * Press "Start Task"
 * Go for a walk or enjoy a pastis! :)
@@ -114,7 +119,7 @@ optional arguments:
 
 ## API Docs
 
-See the DM [API Documentation Page](http://dronemapper.io/docs/) or ODM [API Documentation Page](https://github.com/OpenDroneMap/NodeODM/blob/master/docs/index.adoc).
+See the ODM [API Documentation Page](https://github.com/OpenDroneMap/NodeODM/blob/master/docs/index.adoc).
 
 ## Run Tasks from the Command Line
 
@@ -125,7 +130,7 @@ You can use [CloudODM](https://github.com/OpenDroneMap/CloudODM) to run tasks wi
 If you want to store results on a separate drive, map the `/var/www/data` folder to the location of your drive:
 
 ```bash
-docker run -p 3000:3000 -v /mnt/external_hd:/var/www/data dronemapper/node-micmac
+docker run -p 3001:3001 -v /mnt/external_hd:/var/www/data dronemapper/node-micmac
 ```
 
 This can be also used to access the computation results directly from the file system.
