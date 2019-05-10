@@ -68,7 +68,7 @@ docker build -t dronemapper/node-micmac .
 
 * From the Docker Quickstart Terminal (Windows / OSX) or from the command line (Linux) type:
 ```
-docker run -p 3001:3001 dronemapper/node-micmac
+docker run -p 3000:3000 dronemapper/node-micmac
 ```
 
 * If you're on Windows/OSX, find the IP of your Docker machine by running this command from your Docker Quickstart Terminal:
@@ -79,7 +79,7 @@ docker-machine ip
 
 Linux users can connect to 127.0.0.1.
 
-* Open a Web Browser to `http://<yourDockerMachineIp>:3001`
+* Open a Web Browser to `http://<yourDockerMachineIp>:3000`
 * Load [some images with geo-tags](https://dronemapper.com/sample_data/)
 * Press "Start Task"
 * Go for a walk or enjoy a pastis! :)
@@ -130,7 +130,7 @@ You can use [CloudODM](https://github.com/OpenDroneMap/CloudODM) to run tasks wi
 If you want to store results on a separate drive, map the `/var/www/data` folder to the location of your drive:
 
 ```bash
-docker run -p 3001:3001 -v /mnt/external_hd:/var/www/data dronemapper/node-micmac
+docker run -p 3000:3000 -v /mnt/external_hd:/var/www/data dronemapper/node-micmac
 ```
 
 This can be also used to access the computation results directly from the file system.

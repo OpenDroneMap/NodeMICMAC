@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 MAINTAINER Jon-Pierre Stoermer <jp@dronemapper.com>
 
-EXPOSE 3001
+EXPOSE 3000
 
 ENV TZ=US/Mountain
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
