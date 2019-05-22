@@ -1,6 +1,0 @@
-
-
-                           <ExportOrthoCyl>
-                               <AngulCorr> ${OC_AngCor} </AngulCorr>
-                               <L2EstimAxe> ${OC_L2Estim} </L2EstimAxe>
-                          </ExportOrthoCyl>

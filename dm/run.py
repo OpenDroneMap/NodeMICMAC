@@ -11,6 +11,7 @@ from shapely.geometry import Point
 import os
 import utm
 import glob
+import subprocess
 
 
 def get_image_type():
@@ -125,6 +126,36 @@ def get_last_etape(file_str):
         return etape_files[-1]
 
 
+def create_lcd(image_dir, image_ext, ccd_width, ccd_height):
+    '''
+    Create MicMac-LocalChantierDescripteur.xml
+    :param image_dir: string path
+    :param image_ext: string
+    :param ccd_width: float
+    :param ccd_height: float
+    :return:
+    '''
+    image_wildcard = '*.{}'.format(image_ext)
+    image_files = glob.glob(io.join_paths(image_dir, image_wildcard))
+    image_files.sort(key=lambda f: int(filter(str.isdigit, f)))
+    camera_model = subprocess.check_output(['exiftool', '-Model', '-T', image_files[0]])
+    with open(io.join_paths(image_dir, 'MicMac-LocalChantierDescripteur.xml'), 'wb') as f:
+        f.write('<Global>\n')
+        f.write('\t<ChantierDescripteur>\n')
+        f.write('\t\t<LocCamDataBase>\n')
+        f.write('\t\t\t<CameraEntry>\n')
+        name = '\t\t\t\t<Name> {} </Name>\n'.format(camera_model)
+        f.write(name)
+        ccd_size = '\t\t\t\t<SzCaptMm> {} {} </SzCaptMm>\n'.format(ccd_width, ccd_height)
+        f.write(ccd_size)
+        short_name = '\t\t\t\t<ShortName> {} </ShortName>\n'.format(camera_model)
+        f.write(short_name)
+        f.write('\t\t\t</CameraEntry>\n')
+        f.write('\t\t</LocCamDataBase>\n')
+        f.write('\t</ChantierDescripteur>\n')
+        f.write('</Global>\n')
+
+
 # RUN
 if __name__ == '__main__':
 
@@ -141,7 +172,7 @@ if __name__ == '__main__':
     if IN_DOCKER:
         mm3d = 'mm3d'
     else:
-        mm3d = '/home/mm-aug2018/bin/mm3d' # for dev: locally installed micmac branch
+        mm3d = '/home/drnmppr-micmac/bin/mm3d' # for dev: locally installed micmac branch
 
     try:
         log.MM_INFO('Starting..')
@@ -155,6 +186,11 @@ if __name__ == '__main__':
 
         image_ext = get_image_type()
         projection = get_projection(image_ext)
+
+        # parse ccd_width and ccd_height options and generate MicMac-LocalChantierDescripteur.xml
+        if args.ccd_width and args.ccd_height:
+            log.MM_INFO('Force CCD sensor size {} x {} mm'.format(args.ccd_width, args.ccd_height))
+            create_lcd(image_dir, image_ext, args.ccd_width, args.ccd_height)
 
         log.MM_INFO(image_ext)
         log.MM_INFO(projection)
