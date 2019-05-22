@@ -1,5 +1,0 @@
-bin/EPExePointeInitPolyg /mnt/data/Calib/Pentax-28mm/PolygIGN/param.txt 3356 Pointe=Final
-
-Pointe = Final Interm InitIm
-
-

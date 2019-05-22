@@ -54,6 +54,8 @@ RUN npm install
 RUN mkdir tmp
 RUN mkdir /code
 
+RUN git clone https://github.com/dronemapper-io/micmac.git
+
 RUN cd micmac && rm -rf build && mkdir build && cd build && \
     cmake \
     	-DBUILD_POISSON=0 \
@@ -61,6 +63,7 @@ RUN cd micmac && rm -rf build && mkdir build && cd build && \
     	-DWITH_OPENCL=OFF  \
     	-DWITH_OPEN_MP=OFF  \
     	-DWITH_ETALONPOLY=OFF \
+    	-DWERROR=OFF \
     	../ && \
       make clean && \
       make -j$(cat /proc/cpuinfo | grep processor | wc -l) && make install && \

@@ -1,3 +1,0 @@
-#include <string>
-
-std::string gitRevision(){ return @GIT_REVISION_DIST@; }

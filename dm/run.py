@@ -141,7 +141,7 @@ if __name__ == '__main__':
     if IN_DOCKER:
         mm3d = 'mm3d'
     else:
-        mm3d = '/home/mm-aug2018/bin/mm3d' # for dev: locally installed micmac branch
+        mm3d = '/home/drnmppr-micmac/bin/mm3d' # for dev: locally installed micmac branch
 
     try:
         log.MM_INFO('Starting..')
