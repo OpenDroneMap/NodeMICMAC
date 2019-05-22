@@ -40,6 +40,16 @@
     "default":"False",
     "help":"Creates a point cloud and geojson with image footprints."
   },
+  "--ccd-width": {
+    "type": "<type 'float'>",
+    "metavar": "<float>",
+    "help": "The CCD sensor width in millimeters (mm). Example: 6.17"
+  },
+  "--ccd-height": {
+    "type": "<type 'float'>",
+    "metavar": "<float>",
+    "help": "The CCD sensor height in millimeters (mm). Example: 4.55"
+  },
   "-h": {
     "action": "help",
     "default": "==SUPPRESS==",

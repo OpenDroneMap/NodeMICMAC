@@ -113,6 +113,10 @@ optional arguments:
                         generation routine similar to Photoscan.
   --camera-cloud        Creates a sparse point cloud with camera positions
   --image-footprint     Creates a point cloud and geojson with image footprints
+  --ccd-width <float>   The CCD sensor width in millimeters (mm). Example:
+                        6.17
+  --ccd-height <float>  The CCD sensor height in millimeters (mm). Example:
+                        4.55
   --version             Displays version number and exits.
 
 ```

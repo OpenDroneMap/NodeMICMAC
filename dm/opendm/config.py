@@ -79,6 +79,16 @@ def config():
                         default=False,
                         help='Creates a point cloud and geojson with image footprints')
 
+    parser.add_argument('--ccd-width',
+                        metavar='<float>',
+                        type=float,
+                        help='The CCD sensor width in millimeters (mm). Example: 6.17')
+
+    parser.add_argument('--ccd-height',
+                        metavar='<float>',
+                        type=float,
+                        help='The CCD sensor height in millimeters (mm). Example: 4.55')
+
     parser.add_argument('--version',
                         action='version',
                         version='DroneMapper MicMac {0}'.format(__version__),
