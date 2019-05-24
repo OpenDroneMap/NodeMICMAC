@@ -4,6 +4,7 @@ from opendm import log
 from opendm import config
 from opendm import system
 from opendm import io
+from opendm.progress import progressbc
 
 from collections import namedtuple
 from shapely.geometry import Point
@@ -164,6 +165,8 @@ if __name__ == '__main__':
     log.MM_INFO('Initializing NodeMICMAC app - %s' % system.now())
     log.MM_INFO(args)
 
+    progressbc.set_project_name(args.name)
+
     project_dir = io.join_paths(args.project_path, args.name)
     image_dir = io.join_paths(project_dir, 'images')
 
@@ -205,6 +208,8 @@ if __name__ == '__main__':
         system.run('{mm3d} XifGps2Txt .*.{ext}'.format(**kwargs_gps2txt))
         system.run('{mm3d} XifGps2Xml .*.{ext} RAWGNSS'.format(**kwargs_gps2txt))
 
+        progressbc.send_update(2)
+
         # generate image pairs based on match distance or auto
         kwargs_ori = {
             'distance': args.matcher_distance,
@@ -219,6 +224,8 @@ if __name__ == '__main__':
             log.MM_INFO('Image pairs by auto-distance')
             system.run('{mm3d} OriConvert "#F=N X Y Z" GpsCoordinatesFromExif.txt RAWGNSS_N '
                 'ChSys=DegreeWGS84@RTLFromExif.xml MTD1=1 NameCple=dronemapperPair.xml DN='.format(**kwargs_ori))
+
+        progressbc.send_update(5)
 
         # tie-points SIFT w/ ANN
         # comment by @pierotofy - The SIFT patent has expired, so this can probably be used just fine in all settings.
@@ -237,6 +244,8 @@ if __name__ == '__main__':
         else:
             system.run('{mm3d} Tapioca File dronemapperPair.xml {image_size} ByP={num_cores}'.format(**kwargs_tapioca))
 
+        progressbc.send_update(30)
+
         # camera calibration and initial bundle block adjustment (RadialStd is less accurate but can
         # be more robust vs. Fraser/others)
         kwargs_tapas = {
@@ -245,12 +254,16 @@ if __name__ == '__main__':
         }
         system.run('{mm3d} Tapas RadialStd .*.{ext} EcMax=500'.format(**kwargs_tapas))
 
+        progressbc.send_update(40)
+
         # transform from relative to real
         kwargs_bascule = {
             'ext': image_ext,
             'mm3d': mm3d
         }
         system.run('{mm3d} CenterBascule .*.{ext} RadialStd RAWGNSS_N Ground_Init_RTL'.format(**kwargs_bascule))
+
+        progressbc.send_update(50)
 
         # bundle block adjustment with camera calibration and GPS
         kwargs_campari = {
@@ -260,12 +273,16 @@ if __name__ == '__main__':
         system.run('{mm3d} Campari .*.{ext} Ground_Init_RTL Ground_RTL '
             'EmGPS=[RAWGNSS_N,5] AllFree=1'.format(**kwargs_campari))
 
+        progressbc.send_update(60)
+
         # change projection and system coords to UTM from relative
         kwargs_chg = {
             'ext': image_ext,
             'mm3d': mm3d
         }
         system.run('{mm3d} ChgSysCo .*.{ext} Ground_RTL RTLFromExif.xml@SysUTM.xml Ground_UTM'.format(**kwargs_chg))
+
+        progressbc.send_update(65)
 
         # camera cloud
         if args.camera_cloud:
@@ -276,6 +293,8 @@ if __name__ == '__main__':
             }
             system.run('{mm3d} AperiCloud .*.{ext} Ground_UTM Out={ply} Bin=0'.format(**kwargs_camera_cloud))
 
+        progressbc.send_update(70)
+
         # image footprints
         if args.image_footprint:
             kwargs_image_footprint = {
@@ -284,6 +303,8 @@ if __name__ == '__main__':
                 'ply': io.join_paths(project_dir, 'odm_georeferencing/image_footprint_wgs84.ply')
             }
             system.run('{mm3d} DroneFootPrint .*.{ext} Ground_UTM Out={ply} CodeProj=4326 Resol=[2000,0]'.format(**kwargs_image_footprint))
+
+        progressbc.send_update(75)
 
         # build DEM
         kwargs_malt = {
@@ -295,8 +316,12 @@ if __name__ == '__main__':
         system.run('{mm3d} Malt Ortho .*.{ext} Ground_UTM EZA=1 ZoomI=64 ZoomF={zoom} NbVI=2 HrOr=1 '
             'RoundResol=0 ResolOrtho=1 DefCor=0.0005 NbProc={num_cores}'.format(**kwargs_malt))
 
+        progressbc.send_update(80)
+
         # build ORTHO
         system.run('{mm3d} Tawny Ortho-MEC-Malt RadiomEgal=1'.format(**kwargs_malt))
+
+        progressbc.send_update(90)
 
         # build PLY
         kwargs_nuage = {
@@ -307,6 +332,8 @@ if __name__ == '__main__':
         system.run('{mm3d} Nuage2Ply {nuage} Attr=Ortho-MEC-Malt/Orthophotomosaic.tif '
             '64B=1 Out={ply}'.format(**kwargs_nuage))
 
+        progressbc.send_update(95)
+
         # apply srs and geo projection to ORTHO (UTM) and write to odm_orthophoto/
         gdal_translate(proj_str,
                        io.join_paths(image_dir, 'Ortho-MEC-Malt/Orthophotomosaic.tif'),
@@ -316,6 +343,8 @@ if __name__ == '__main__':
         gdal_translate(proj_str,
                        io.join_paths(image_dir, get_last_etape('MEC-Malt/Z_Num*_DeZoom{}*.tif'.format(args.zoom))),
                        io.join_paths(project_dir, 'odm_dem/dsm.tif'))
+        
+        progressbc.send_update(100)
 
         exit(0)
 
