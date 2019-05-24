@@ -723,7 +723,7 @@ app.get('/info', authCheck, (req, res) => {
             maxImages: config.maxImages,
             maxParallelTasks: config.parallelQueueProcessing,
             engineVersion: engineVersion,
-            engine: 'odm'
+            engine: 'micmac'
         });
     });
 });

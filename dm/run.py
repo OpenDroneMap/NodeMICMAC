@@ -208,7 +208,7 @@ if __name__ == '__main__':
         system.run('{mm3d} XifGps2Txt .*.{ext}'.format(**kwargs_gps2txt))
         system.run('{mm3d} XifGps2Xml .*.{ext} RAWGNSS'.format(**kwargs_gps2txt))
 
-        progressbc.send_update(5)
+        progressbc.send_update(2)
 
         # generate image pairs based on match distance or auto
         kwargs_ori = {
@@ -225,7 +225,7 @@ if __name__ == '__main__':
             system.run('{mm3d} OriConvert "#F=N X Y Z" GpsCoordinatesFromExif.txt RAWGNSS_N '
                 'ChSys=DegreeWGS84@RTLFromExif.xml MTD1=1 NameCple=dronemapperPair.xml DN='.format(**kwargs_ori))
 
-        progressbc.send_update(20)
+        progressbc.send_update(5)
 
         # tie-points SIFT w/ ANN
         # comment by @pierotofy - The SIFT patent has expired, so this can probably be used just fine in all settings.
