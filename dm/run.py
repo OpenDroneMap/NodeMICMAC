@@ -271,7 +271,7 @@ if __name__ == '__main__':
             'mm3d': mm3d
         }
         system.run('{mm3d} Campari .*.{ext} Ground_Init_RTL Ground_RTL '
-            'EmGPS=[RAWGNSS_N,5] AllFree=1'.format(**kwargs_campari))
+            'EmGPS=[RAWGNSS_N,5] AllFree=0'.format(**kwargs_campari))
 
         progressbc.send_update(60)
 
