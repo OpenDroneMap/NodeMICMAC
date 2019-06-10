@@ -38,13 +38,13 @@ const utils = require('./utils');
 const statusCodes = require('./statusCodes');
 
 module.exports = class Task{
-    constructor(uuid, name, options = [], webhook = null, skipPostProcessing = false, outputs = [], done = () => {}){
+    constructor(uuid, name, options = [], webhook = null, skipPostProcessing = false, outputs = [], dateCreated = new Date().getTime(), done = () => {}){
         assert(uuid !== undefined, "uuid must be set");
         assert(done !== undefined, "ready must be set");
 
         this.uuid = uuid;
         this.name = name !== "" ? name : "Task of " + (new Date()).toISOString();
-        this.dateCreated = new Date().getTime();
+        this.dateCreated = isNaN(parseInt(dateCreated)) ? new Date().getTime() : parseInt(dateCreated);
         this.processingTime = -1;
         this.setStatus(statusCodes.QUEUED);
         this.options = options;
@@ -96,6 +96,7 @@ module.exports = class Task{
             taskJson.webhook, 
             taskJson.skipPostProcessing,
             taskJson.outputs,
+            taskJson.dateCreated,
             (err, task) => {
                 if (err) done(err);
                 else{
@@ -341,7 +342,7 @@ module.exports = class Task{
             let allPaths = ['odm_orthophoto/odm_orthophoto.tif', 'odm_orthophoto/odm_orthophoto.mbtiles',
                               'odm_georeferencing', 'odm_texturing',
                               'odm_dem/dsm.tif', 'odm_dem/dtm.tif', 'dsm_tiles', 'dtm_tiles',
-                              'orthophoto_tiles', 'potree_pointcloud', 'images.json'];
+                              'orthophoto_tiles', 'potree_pointcloud', 'entwine_pointcloud', 'images.json'];
             
             // Did the user request different outputs than the default?
             if (this.outputs.length > 0) allPaths = this.outputs;
@@ -353,7 +354,7 @@ module.exports = class Task{
                     logger.info("Test mode will skip orthophoto generation");
 
                     // Exclude these folders from the all.zip archive
-                    ['odm_orthophoto', 'orthophoto_tiles'].forEach(dir => {
+                    ['odm_orthophoto/odm_orthophoto.tif', 'odm_orthophoto/odm_orthophoto.mbtiles', 'orthophoto_tiles'].forEach(dir => {
                         allPaths.splice(allPaths.indexOf(dir), 1);
                     });
                 }
@@ -367,10 +368,16 @@ module.exports = class Task{
                     });
                 }
 
+                if (config.testSeconds){
+                    logger.info(`Test mode will sleep for ${config.testSeconds} seconds before finishing processing`);
+                    tasks.push(done => setTimeout(done, config.testSeconds * 1000));
+                }
+
                 if (config.testFailTasks){
                     logger.info("Test mode will fail the task");
                     tasks.push(done => done(new Error("Test fail")));
                 }
+
             }
             
             if (!this.skipPostProcessing) tasks.push(runPostProcessingScript());
