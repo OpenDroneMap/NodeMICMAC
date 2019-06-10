@@ -319,7 +319,7 @@ if __name__ == '__main__':
         progressbc.send_update(80)
 
         # build ORTHO
-        system.run('{mm3d} Tawny Ortho-MEC-Malt RadiomEgal=1 DegRapXY=4 SzV=25'.format(**kwargs_malt))
+        system.run('{mm3d} Tawny Ortho-MEC-Malt DEq=1 RadiomEgal=1 DegRapXY=4 SzV=25'.format(**kwargs_malt))
 
         progressbc.send_update(90)
 
