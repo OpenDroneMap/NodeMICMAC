@@ -45,6 +45,7 @@ app.use('/swagger.json', express.static('docs/swagger.json'));
 
 const formDataParser = multer().none();
 const urlEncodedBodyParser = bodyParser.urlencoded({extended: false});
+const jsonBodyParser = bodyParser.json();
 
 let taskManager;
 let server;
@@ -85,6 +86,12 @@ let server;
  *          description: 'An optional serialized JSON string of paths relative to the project directory that should be included in the all.zip result file, overriding the default behavior.'
  *          required: false
  *          type: string
+ *        -
+ *          name: dateCreated
+ *          in: formData
+ *          description: 'An optional timestamp overriding the default creation date of the task.'
+ *          required: false
+ *          type: integer
  *        -
  *          name: token
  *          in: query
@@ -237,6 +244,12 @@ app.post('/task/new/commit/:uuid', authCheck, taskNew.getUUID, taskNew.handleCom
  *          description: 'An optional serialized JSON string of paths relative to the project directory that should be included in the all.zip result file, overriding the default behavior.'
  *          required: false
  *          type: string
+ *        -
+ *          name: dateCreated
+ *          in: formData
+ *          description: 'An optional timestamp overriding the default creation date of the task.'
+ *          required: false
+ *          type: integer
  *        -
  *          name: token
  *          in: query
@@ -525,7 +538,7 @@ let successHandler = res => {
  *          schema:
  *            $ref: "#/definitions/Response"
  */
-app.post('/task/cancel', urlEncodedBodyParser, authCheck, uuidCheck, (req, res) => {
+app.post('/task/cancel', urlEncodedBodyParser, jsonBodyParser, authCheck, uuidCheck, (req, res) => {
     taskManager.cancel(req.body.uuid, successHandler(res));
 });
 
@@ -553,7 +566,7 @@ app.post('/task/cancel', urlEncodedBodyParser, authCheck, uuidCheck, (req, res) 
  *          schema:
  *            $ref: "#/definitions/Response"
  */
-app.post('/task/remove', urlEncodedBodyParser, authCheck, uuidCheck, (req, res) => {
+app.post('/task/remove', urlEncodedBodyParser, jsonBodyParser, authCheck, uuidCheck, (req, res) => {
     taskManager.remove(req.body.uuid, successHandler(res));
 });
 
@@ -588,7 +601,7 @@ app.post('/task/remove', urlEncodedBodyParser, authCheck, uuidCheck, (req, res) 
  *          schema:
  *            $ref: "#/definitions/Response"
  */
-app.post('/task/restart', urlEncodedBodyParser, authCheck, uuidCheck, (req, res, next) => {
+app.post('/task/restart', urlEncodedBodyParser, jsonBodyParser, authCheck, uuidCheck, (req, res, next) => {
     if (req.body.options){
         odmInfo.filterOptions(req.body.options, (err, options) => {
             if (err) res.json({ error: err.message });
