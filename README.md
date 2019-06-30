@@ -33,10 +33,9 @@ This list is not by order of importance.
 - [ ] Utilize RPY Omega Phi Kappa
 - [x] Sparse Point Cloud w/ Camera Position
 - [x] Point Cloud w/ Image Ground Footprints 
-- [ ] Update Tests
 - [x] Initial Integration w/ WebODM
-- [ ] Full Integration w/ WebODM
-- [ ] Progress Reporting
+- [x] Full Integration w/ WebODM
+- [x] Progress Reporting
 - [ ] Staged Restart Ability
 
 Note: This project currently creates a geo-referenced DEM and Ortho from our 4th Ave. test imagery (and most likely your imagery). The results are located in their respective directories in UTM projection.
@@ -56,6 +55,10 @@ Note: This project currently creates a geo-referenced DEM and Ortho from our 4th
 ## Mission Planning / Execution
 
 * We recommend using a mission planning application such as MapPilot, DJI GS Pro, or Pix4DMapper.
+
+## Support
+
+Commercial support for this project is available from [DroneMapper.com](https://dronemapper.com).
 
 ## Getting Started
 
@@ -242,7 +245,7 @@ You can find some test drone images [here](https://dronemapper.com/sample_data/)
 
 ## What if I need more functionality?
 
-NodeMICMAC is meant to be a lightweight API.
+NodeMICMAC is meant to be a lightweight API. Commercial support and development is available.
 
 ## Contributing
 

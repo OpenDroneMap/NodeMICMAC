@@ -319,7 +319,10 @@ if __name__ == '__main__':
         progressbc.send_update(80)
 
         # build ORTHO
-        system.run('{mm3d} Tawny Ortho-MEC-Malt DEq=1 RadiomEgal=1 DegRapXY=4 SzV=25'.format(**kwargs_malt))
+        porto_src = '/code/micmac/include/XML_MicMac/Param-Tawny.xml'
+        porto_dst = 'Ortho-MEC-Malt/Param-Tawny.xml'
+        io.copy(porto_src, porto_dst)
+        system.run('{mm3d} Porto Ortho-MEC-Malt/Param-Tawny.xml'.format(**kwargs_malt))
 
         progressbc.send_update(90)
 
