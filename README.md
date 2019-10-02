@@ -24,7 +24,7 @@ This list is not by order of importance.
 - [ ] Interfaces w/ Other Software (PMVS/OpenSFM/Pix4D/DroneMapper)
 - [x] Point Cloud
 - [x] Post Processing
-- [ ] GCP Processing
+- [x] GCP Processing (Requires 3D "ground" and 2D "image" Files)
 - [ ] Oblique Imagery and/or 3D Model
 - [x] Conform / Rename Outputs to ODM Conventions
 - [x] Wire Up 2D and Potree Tile Creation
@@ -37,18 +37,29 @@ This list is not by order of importance.
 - [x] Full Integration w/ WebODM
 - [x] Progress Reporting
 - [ ] Staged Restart Ability
-
+- [x] Optimize Orthomosaic Generation
+- [ ] Multi-Threaded Orthomosaic Generation/Seamline Feathering (BETA)
+ 
 Note: This project currently creates a geo-referenced DEM and Ortho from our 4th Ave. test imagery (and most likely your imagery). The results are located in their respective directories in UTM projection.
 
 ## Test Data
-[DroneMapper 4th Ave. Reservoir](https://dronemapper.com/software/4thAve.zip) - 48 Geo-tagged Images DJI Phantom 3 Advanced
+[DroneMapper 4th Ave. Reservoir](https://dronemapper.com/software/4thAve.zip) - 48 Geo-Tagged Images DJI Phantom 3 Advanced
 
 ![4th_Images](docs/readme_4th_images.png)
 
-## Results
+[DroneMapper Greg 1 & 2 Reservoir](https://dronemapper.com/sample_data/) - 189 Geo-Tagged Images DJI Phantom 3 Advanced w/ Trimble 5800 Surveyed GCP Data
+
+![Greg1_2_Images](docs/readme_gregg12_images.png)
+
+## 4th Ave. Results
 
 ![4th_DEM](docs/readme_4th_DEM.PNG)
 ![4th_Ortho](docs/readme_4th_Ortho.PNG)
+
+## Gregg 1 & 2 GCP Results
+
+![Greg12 Ortho](docs/readme_greg12_ortho_gcp.png)
+![Greg12 GCP1](docs/readme_greg12_gcp1.png)
 
 * Results clipped to an AOI and displayed using Global Mapper [GlobalMapper](https://bluemarblegeo.com)
 
@@ -89,6 +100,70 @@ Linux users can connect to 127.0.0.1.
 
 If the computer running NodeMICMAC is using an old or 32bit CPU, you need to compile OpenDroneMap from sources and setup NodeMICMAC natively. You cannot use docker. Docker images work with CPUs with 64-bit extensions, MMX, SSE, SSE2, SSE3 and SSSE3 instruction set support or higher. Seeing a `Illegal instruction` error while processing images is an indication that your CPU is too old. 
 
+## Using Ground Control Points
+
+For GCP processing, you will need to include two files in txt format. Examples of the files are shown
+below.
+
+`DroneMapperGCP_3D.txt`
+
+`GCPNAME UTMX UTMY Z PRECISIONXY PRECISIONZ`
+```$xslt
+base 250021.111 4319269.236 2593.462 0.005 0.005
+1 250002.422 4319308.241 2594.213 0.005 0.005
+pf1 250041.932 4319214.143 2590.057 0.005 0.005
+hg1 250020.983 4319214.803 2590.412 0.005 0.005
+sw1 250006.047 4319127.513 2592.616 0.005 0.005
+2 249990.82 4319134.391 2592.927 0.005 0.005
+3 249876.345 4319057.461 2593.507 0.005 0.005
+4 250175.483 4319290.858 2584.199 0.005 0.005
+hg2 250117.42 4319009.086 2565.418 0.005 0.005
+5 250114.413 4318998.234 2567.861 0.005 0.005
+sw2 250159.165 4319019.774 2567.198 0.005 0.005
+```
+
+`DroneMapperGCP_2D.txt`
+
+`GCPNAME IMAGENAME PIXELX PIXELY`
+```$xslt
+1 DJI_0065.JPG 3036 1244
+1 DJI_0066.JPG 3022 1915
+1 DJI_0071.JPG 1859 1179
+1 DJI_0072.JPG 1860 1800
+1 DJI_0099.JPG 1350 1129
+1 DJI_0100.JPG 1355 1779
+2 DJI_0058.JPG 2872 1129
+2 DJI_0059.JPG 2870 1741
+2 DJI_0078.JPG 1997 1170
+2 DJI_0079.JPG 2050 1787
+2 DJI_0092.JPG 1219 1166
+2 DJI_0093.JPG 1226 1736
+3 DJI_0012.JPG 1477 458
+3 DJI_0013.JPG 1521 1051
+3 DJI_0014.JPG 1553 1677
+3 DJI_0015.JPG 1595 2295
+3 DJI_0020.JPG 1632 641
+3 DJI_0021.JPG 1673 1312
+3 DJI_0022.JPG 1699 1964
+4 DJI_0166.JPG 2402 890
+4 DJI_0167.JPG 2386 1442
+4 DJI_0168.JPG 2378 1986
+4 DJI_0173.JPG 2386 917
+4 DJI_0174.JPG 2385 1502
+4 DJI_0175.JPG 2410 2106
+5 DJI_0120.JPG 2590 788
+5 DJI_0121.JPG 2605 1286
+5 DJI_0122.JPG 2622 1808
+5 DJI_0151.JPG 2019 1093
+5 DJI_0152.JPG 2049 1589
+5 DJI_0153.JPG 2090 2061
+5 DJI_0155.JPG 1335 1365
+5 DJI_0156.JPG 1386 1832
+```
+
+The files should be space delimited and can be named anything, as long as `3D` exists in the ground filename and `2D` 
+exists in the images filename.
+
 ## API Options / Command Line Parameters
 
 ```bash
@@ -101,19 +176,22 @@ optional arguments:
                         Path to input images
   --project-path <path>
                         Path to the project folder
+  --gcp <path>
+                        Path to MicMac GCP txt files
   --max-concurrency <integer>
                         The maximum number of cores to use in processing.
                         Default: 4
   --resize-to <integer>
                         Scale image width for tie-point extraction. Default:
                         800
-  --zoom <integer>      The level of DEM construction. 2 means 2x native GSD.
-                        Default: 2 Values: 1, 2, 4, 8
+  --zoom <integer>      The level of DEM construction. 4 means 4x native GSD.
+                        Default: 4 Values: 1, 2, 4, 8
   --matcher-distance <integer>
                         Distance threshold in meters to find pre-matching
                         images based on GPS exif data. Default: 0 (use auto-distance)
   --multi-scale         Uses an image file pair based multi-scale tie-point
                         generation routine similar to Photoscan.
+  --remove-ortho-tiles  Remove every other ortho tile. Speeds up ortho creation and radiometric equalization.
   --camera-cloud        Creates a sparse point cloud with camera positions
   --image-footprint     Creates a point cloud and geojson with image footprints
   --ccd-width <float>   The CCD sensor width in millimeters (mm). Example:

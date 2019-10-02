@@ -1,7 +1,12 @@
 {
   "--project-path": {
     "metavar": "<path>",
-    "help": "Path to the project folder"
+    "help": "Path to the project folder."
+  },
+  "--gcp": {
+    "default": "None",
+    "metavar": "<path>",
+    "help": "Path to the files containing the ground control points used for georeferencing. Default: None"
   },
   "--max-concurrency": {
     "default": "4",
@@ -16,10 +21,10 @@
     "help": "Scale image width for tie-point extraction. Default: 800"
   },
   "--zoom": {
-    "default": "2",
+    "default": "4",
     "type": "<type 'int'>",
     "metavar": "<positive integer>",
-    "help": "The level of DEM construction. 2 means 2x native GSD. Default: 2 Values: 1, 2, 4, 8"
+    "help": "The level of DEM construction. 4 means 4x native GSD. Default: 4 Values: 1, 2, 4, 8"
   },
   "--matcher-distance": {
     "metavar": "<positive integer>",
@@ -29,6 +34,11 @@
     "action":"store_true",
     "default":"False",
     "help":"Uses an image file pair based multi-scale tie-point generation routine similar to Photoscan."
+  },
+  "--remove-ortho-tiles":{
+    "action":"store_true",
+    "default":"False",
+    "help":"Remove every other ortho tile. Speeds up ortho creation and radiometric equalization."
   },
   "--camera-cloud":{
     "action":"store_true",

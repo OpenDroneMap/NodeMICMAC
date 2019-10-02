@@ -31,6 +31,10 @@ def config():
                        metavar='<path>',
                        help='Path to the project folder')
 
+    parser.add_argument('--gcp',
+                        metavar='<path>',
+                        help='Path to the gcp files')
+
     parser.add_argument('name',
                        metavar='<project name>',
                        type=alphanumeric_string,
@@ -52,10 +56,10 @@ def config():
 
     parser.add_argument('--zoom',
                         metavar='<integer>',
-                        default=2,
+                        default=4,
                         type=int,
-                        help='The level of DEM construction. 2 means 2x native GSD. '
-                             'Default: 2 Values: 1, 2, 4, 8')
+                        help='The level of DEM construction. 4 means 4x native GSD. '
+                             'Default: 4 Values: 1, 2, 4, 8')
 
     parser.add_argument('--matcher-distance',
                         metavar='<integer>',
@@ -68,6 +72,11 @@ def config():
                         default=False,
                         help='Uses an image file pair based multi-scale tie-point '
                              'generation routine similar to Photoscan.')
+
+    parser.add_argument('--remove-ortho-tiles',
+                        action='store_true',
+                        default=False,
+                        help='Remove every other ortho tile. Speeds up ortho creation and radiometric equalization.')
 
     parser.add_argument('--camera-cloud',
                         action='store_true',
