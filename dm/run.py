@@ -157,13 +157,13 @@ def create_lcd(image_dir, image_ext, ccd_width, ccd_height):
         f.write('</Global>\n')
 
 
-def convert_gcp(gcp_dir):
+def convert_gcp(gcp_dir, utm_zone, hemisphere):
     '''
     Convert MicMac GCP TXT files to MicMac GCP XML format
     :param image_dir: path
     :return:
 
-    Expects files to be named, DroneMapperGCP_2D.txt and DroneMapperGCP_3D.txt
+    Expects files to be named, DroneMapperGCP_2D.txt and DroneMapperGCP_3D.txt or ODM format: gcp_list.txt
 
     DroneMapperGCP_2D.txt format (single space delimiter):
     GCP IMAGENAME PIXELX PIXELY
@@ -171,6 +171,7 @@ def convert_gcp(gcp_dir):
     DroneMapperGCP_3D.txt format (single space delimiter):
     GCP UTMX UTMY Z PRECISION X/Y PRECISIONZ
     '''
+    from opendm import gcp
 
     log.MM_INFO('Converting GCP.')
 
@@ -180,6 +181,11 @@ def convert_gcp(gcp_dir):
             gcp_3d_file = file
         if '2d' in file.lower():
             gcp_2d_file = file
+        if 'gcp_list' in file.lower():
+            gcp_file = gcp.GCPFile(file)
+            gcp_file.make_micmac_copy(gcp_dir, utm_zone='WGS84 UTM {}{}'.format(utm_zone, hemisphere))
+            gcp_2d_file = '2d_gcp.txt'
+            gcp_3d_file = '3d_gcp.txt'
 
     # MicMac GCP 2D - target locations in images
     # GCPNAME IMAGE PIXELX PIXELY
@@ -372,7 +378,7 @@ if __name__ == '__main__':
             'mm3d': mm3d
         }
         if args.gcp:
-            convert_gcp(gcp_dir)
+            convert_gcp(gcp_dir, projection['utm_zone'], projection['hemisphere'][0].upper())
             system.run('{mm3d} GCPBascule .*.{ext} RadialStd Ground_Init_RTL ground.xml images.xml ShowD=1'.format(**kwargs_bascule))
         else:
             system.run('{mm3d} CenterBascule .*.{ext} RadialStd RAWGNSS_N Ground_Init_RTL'.format(**kwargs_bascule))
