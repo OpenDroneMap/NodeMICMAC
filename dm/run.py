@@ -182,7 +182,7 @@ def convert_gcp(gcp_dir, utm_zone, hemisphere):
         if '2d' in file.lower():
             gcp_2d_file = file
         if 'gcp_list' in file.lower():
-            gcp_file = gcp.GCPFile(file)
+            gcp_file = gcp.GCPFile(os.path.join(gcp_dir, file))
             gcp_file.make_micmac_copy(gcp_dir, utm_zone='WGS84 UTM {}{}'.format(utm_zone, hemisphere))
             gcp_2d_file = '2d_gcp.txt'
             gcp_3d_file = '3d_gcp.txt'
