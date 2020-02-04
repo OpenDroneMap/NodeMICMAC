@@ -368,7 +368,7 @@ if __name__ == '__main__':
             'ext': image_ext,
             'mm3d': mm3d
         }
-        system.run('{mm3d} Tapas RadialStd .*.{ext} EcMax=500'.format(**kwargs_tapas))
+        system.run('echo "\n" | {mm3d} Tapas RadialStd .*.{ext} EcMax=500'.format(**kwargs_tapas))
 
         progressbc.send_update(40)
 
@@ -457,7 +457,8 @@ if __name__ == '__main__':
 
         porto_dst = 'Ortho-MEC-Malt/Param-Tawny.xml'
         io.copy(porto_src, porto_dst)
-        system.run('{mm3d} Porto Ortho-MEC-Malt/Param-Tawny.xml'.format(**kwargs_malt))
+        #system.run('{mm3d} Porto Ortho-MEC-Malt/Param-Tawny.xml'.format(**kwargs_malt))
+        system.run('{mm3d} Tawny Ortho-MEC-Malt'.format(**kwargs_malt))
 
         progressbc.send_update(90)
 
