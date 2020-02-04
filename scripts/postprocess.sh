@@ -59,9 +59,10 @@ done
 if hash gdal_translate 2>/dev/null; then
 	orthophoto_path="odm_orthophoto/odm_orthophoto.tif"
 	orthophoto_mbtiles_path="odm_orthophoto/odm_orthophoto.mbtiles"
-
+        zoom_level="ZOOM_LEVEL_STRATEGY=LOWER"
+	
 	if [ -e "$orthophoto_path" ]; then
-		gdal_translate $orthophoto_path $orthophoto_mbtiles_path -of MBTILES
+		gdal_translate $orthophoto_path $orthophoto_mbtiles_path -co "$zoom_level" -of MBTILES
 		gdaladdo -r bilinear $orthophoto_mbtiles_path 2 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384
 	else
 		echo "No orthophoto found at $orthophoto_path: will skip MBTiles generation"
@@ -69,6 +70,11 @@ if hash gdal_translate 2>/dev/null; then
 else
 	echo "gdal_translate is not installed, will skip MBTiles generation"
 fi
+
+#Generate laz point cloud
+pointcloud_input="odm_georeferencing/odm_georeferenced_model.ply"
+pointcloud_output="odm_georeferencing/odm_georeferenced_model.laz"
+pdal translate -i "$pointcloud_input"  "$pointcloud_output"
 
 # Generate point cloud (if entwine or potreeconverter is available)
 pointcloud_input_path=""
@@ -106,7 +112,11 @@ if [ ! -z "$pointcloud_input_path" ]; then
             rm -fr "entwine_pointcloud"
         fi
         
-        entwine build --threads $(nproc) --tmp "entwine_pointcloud-tmp" -i "$pointcloud_input_path" -o entwine_pointcloud
+	#extract srs and add as option to entwine
+	srs=`grep -oPm1 "(?<=<AuxStr>)[^<]+" < images/SysUTM.xml`
+        entwine build --threads $(nproc) --srs "$srs" --tmp "entwine_pointcloud-tmp" -i "$pointcloud_input_path"  -o entwine_pointcloud
+	
+	#entwine build --threads $(nproc) --tmp "entwine_pointcloud-tmp" -i "$pointcloud_input_path" -o entwine_pointcloud
         
         # Cleanup
         if [ -e "entwine_pointcloud-tmp" ]; then
