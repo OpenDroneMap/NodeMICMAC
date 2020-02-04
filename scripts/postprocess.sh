@@ -59,7 +59,8 @@ done
 if hash gdal_translate 2>/dev/null; then
 	orthophoto_path="odm_orthophoto/odm_orthophoto.tif"
 	orthophoto_mbtiles_path="odm_orthophoto/odm_orthophoto.mbtiles"
-        zoom_level="ZOOM_LEVEL_STRATEGY=LOWER"
+        #zoom_level="ZOOM_LEVEL_STRATEGY=LOWER"
+	zoom_level="MAXZOOM=22"
 	
 	if [ -e "$orthophoto_path" ]; then
 		gdal_translate $orthophoto_path $orthophoto_mbtiles_path -co "$zoom_level" -of MBTILES
