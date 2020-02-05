@@ -361,6 +361,18 @@ if __name__ == '__main__':
             system.run('{mm3d} Tapioca File dronemapperPair.xml {image_size} ByP={num_cores}'.format(**kwargs_tapioca))
 
         progressbc.send_update(30)
+        
+        
+        #filter TiePoints (better distribution, avoid clogging)
+        kwargs_schnaps = {
+            'ext': image_ext,
+            'mm3d': mm3d
+            
+        }
+	    system.run('{mm3d} Schnaps .*.{ext} MoveBadImgs=1'.format(**kwargs_schnaps))
+        
+        progressbc.send_update(5)
+        
 
         # camera calibration and initial bundle block adjustment (RadialStd is less accurate but can
         # be more robust vs. Fraser/others)
@@ -368,7 +380,7 @@ if __name__ == '__main__':
             'ext': image_ext,
             'mm3d': mm3d
         }
-        system.run('echo "\n" | {mm3d} Tapas RadialStd .*.{ext} EcMax=500'.format(**kwargs_tapas))
+        system.run('echo "\n" | {mm3d} Tapas FraserBasic  .*.{ext} EcMax=500'.format(**kwargs_tapas))
 
         progressbc.send_update(40)
 
