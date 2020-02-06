@@ -363,7 +363,7 @@ if __name__ == '__main__':
         progressbc.send_update(30)
         
         
-        filter TiePoints (better distribution, avoid clogging)
+        #filter TiePoints (better distribution, avoid clogging)
         kwargs_schnaps = {
             'ext': image_ext,
             'mm3d': mm3d
