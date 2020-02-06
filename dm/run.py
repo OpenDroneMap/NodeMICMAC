@@ -363,15 +363,15 @@ if __name__ == '__main__':
         progressbc.send_update(30)
         
         
-        #filter TiePoints (better distribution, avoid clogging)
-        #kwargs_schnaps = {
-        #    'ext': image_ext,
-        #    'mm3d': mm3d
-        #    
-        #}
-	#    system.run('{mm3d} Schnaps .*.{ext} MoveBadImgs=1'.format(**kwargs_schnaps))
-        #
-        #progressbc.send_update(5)
+        filter TiePoints (better distribution, avoid clogging)
+        kwargs_schnaps = {
+            'ext': image_ext,
+            'mm3d': mm3d
+            
+        }
+	    system.run('{mm3d} Schnaps .*.{ext} MoveBadImgs=1'.format(**kwargs_schnaps))
+        
+        progressbc.send_update(5)
         
 
         # camera calibration and initial bundle block adjustment (RadialStd is less accurate but can
@@ -380,7 +380,7 @@ if __name__ == '__main__':
             'ext': image_ext,
             'mm3d': mm3d
         }
-        system.run('echo "\n" | {mm3d} Tapas RadialStd  .*.{ext} EcMax=500'.format(**kwargs_tapas))
+        system.run('echo "\n" | {mm3d} Tapas FraserBasic  .*.{ext} EcMax=500'.format(**kwargs_tapas))
 
         progressbc.send_update(40)
 
@@ -391,9 +391,9 @@ if __name__ == '__main__':
         }
         if args.gcp:
             convert_gcp(gcp_dir, projection['utm_zone'], projection['hemisphere'][0].upper())
-            system.run('{mm3d} GCPBascule .*.{ext} RadialStd Ground_Init_RTL ground.xml images.xml ShowD=1'.format(**kwargs_bascule))
+            system.run('{mm3d} GCPBascule .*.{ext} FraserBasic Ground_Init_RTL ground.xml images.xml ShowD=1'.format(**kwargs_bascule))
         else:
-            system.run('{mm3d} CenterBascule .*.{ext} RadialStd RAWGNSS_N Ground_Init_RTL'.format(**kwargs_bascule))
+            system.run('{mm3d} CenterBascule .*.{ext} FraserBasic RAWGNSS_N Ground_Init_RTL'.format(**kwargs_bascule))
 
         progressbc.send_update(50)
 
