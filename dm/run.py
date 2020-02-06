@@ -369,7 +369,7 @@ if __name__ == '__main__':
             'mm3d': mm3d
             
         }
-	    system.run('{mm3d} Schnaps .*.{ext} MoveBadImgs=1'.format(**kwargs_schnaps))
+	system.run('{mm3d} Schnaps .*.{ext} MoveBadImgs=1'.format(**kwargs_schnaps))
         
         progressbc.send_update(5)
         
