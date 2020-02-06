@@ -364,14 +364,14 @@ if __name__ == '__main__':
         
         
         #filter TiePoints (better distribution, avoid clogging)
-        kwargs_schnaps = {
-            'ext': image_ext,
-            'mm3d': mm3d
-            
-        }
-	    system.run('{mm3d} Schnaps .*.{ext} MoveBadImgs=1'.format(**kwargs_schnaps))
-        
-        progressbc.send_update(5)
+        #kwargs_schnaps = {
+        #    'ext': image_ext,
+        #    'mm3d': mm3d
+        #    
+        #}
+	#    system.run('{mm3d} Schnaps .*.{ext} MoveBadImgs=1'.format(**kwargs_schnaps))
+        #
+        #progressbc.send_update(5)
         
 
         # camera calibration and initial bundle block adjustment (RadialStd is less accurate but can
