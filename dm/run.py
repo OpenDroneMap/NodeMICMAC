@@ -380,7 +380,7 @@ if __name__ == '__main__':
             'ext': image_ext,
             'mm3d': mm3d
         }
-        system.run('echo "\n" | {mm3d} Tapas FraserBasic  .*.{ext} EcMax=500'.format(**kwargs_tapas))
+        system.run('echo "\n" | {mm3d} Tapas RadialStd  .*.{ext} EcMax=500'.format(**kwargs_tapas))
 
         progressbc.send_update(40)
 
