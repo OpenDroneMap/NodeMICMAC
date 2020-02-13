@@ -355,9 +355,8 @@ if __name__ == '__main__':
             'mm3d': mm3d
         }
         if args.multi_scale:
-            system.run('{mm3d} Tapioca MulScaleFile dronemapperPair.xml .*.{ext} '
-                '{image_size} {mulscale_size} ByP={num_cores}'.format(**kwargs_tapioca))
-        else:
+            system.run('{mm3d} Tapioca MulScale .*.{ext} {image_size} {mulscale_size} ByP={num_cores}'.format(**kwargs_tapioca))
+	else:
             system.run('{mm3d} Tapioca File dronemapperPair.xml {image_size} ByP={num_cores}'.format(**kwargs_tapioca))
 
         progressbc.send_update(30)
