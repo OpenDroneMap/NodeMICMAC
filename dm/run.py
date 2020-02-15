@@ -470,7 +470,10 @@ if __name__ == '__main__':
         io.copy(porto_src, porto_dst)
         #system.run('{mm3d} Porto Ortho-MEC-Malt/Param-Tawny.xml'.format(**kwargs_malt))
         system.run('{mm3d} Tawny Ortho-MEC-Malt'.format(**kwargs_malt))
-
+        
+	# In case of BIG datsets , MicMac generate tiled orthophoto with several files. In order to finish , it's need to find 
+	# a why to merge those files in one Orthophotomosaic.tif
+	
         progressbc.send_update(90)
 
         # build PLY
