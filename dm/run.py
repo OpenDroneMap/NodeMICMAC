@@ -457,9 +457,8 @@ if __name__ == '__main__':
 
         porto_dst = 'Ortho-MEC-Malt/Param-Tawny.xml'
         io.copy(porto_src, porto_dst)
-        #system.run('{mm3d} Porto Ortho-MEC-Malt/Param-Tawny.xml'.format(**kwargs_malt))
-<<<<<<< HEAD
-        system.run('{mm3d} Tawny Ortho-MEC-Malt/'.format(**kwargs_malt))
+        
+	system.run('{mm3d} Tawny Ortho-MEC-Malt/'.format(**kwargs_malt))
 
 	## merge ortho tiles
 	kwargs_tiles = {
@@ -468,14 +467,9 @@ if __name__ == '__main__':
         system.run('{tiles_merge}'.format(**kwargs_tiles))
 
         progressbc.send_update(10)
-=======
         system.run('{mm3d} Tawny Ortho-MEC-Malt'.format(**kwargs_malt))
         
-	# In case of BIG datsets , MicMac generate tiled orthophoto with several files. In order to finish , it's need to find 
-	# a why to merge those files in one Orthophotomosaic.tif
-	
         progressbc.send_update(90)
->>>>>>> c6fb3fdd9b7a886300d45cfc5ce9e135540e4032
 
         # build PLY
         kwargs_nuage = {
