@@ -292,8 +292,6 @@ if __name__ == '__main__':
         mm3d = 'mm3d'
     else:
         mm3d = '/home/drnmppr-micmac/bin/mm3d' # for dev: locally installed micmac branch
-	tiles_merge = '/micmac/scripts/tiles_merge.py'
-
     try:
         log.MM_INFO('Starting..')
         os.chdir(image_dir)
@@ -463,10 +461,8 @@ if __name__ == '__main__':
         progressbc.send_update(10)
 	
 	## merge ortho tiles
-	kwargs_tiles = {
-            'tiles_merge': tiles_merge
-        }
-        system.run('{tiles_merge}'.format(**kwargs_tiles))
+
+        system.run('/micmac/scripts/tiles_merge.py')
 
         progressbc.send_update(10)
 
