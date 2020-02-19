@@ -292,7 +292,7 @@ if __name__ == '__main__':
         mm3d = 'mm3d'
     else:
         mm3d = '/home/drnmppr-micmac/bin/mm3d' # for dev: locally installed micmac branch
-	tiles_merge = '~/macodm/tiles_merge.py'
+	tiles_merge = '/micmac/scripts/tiles_merge.py'
 
     try:
         log.MM_INFO('Starting..')
@@ -457,9 +457,11 @@ if __name__ == '__main__':
 
         porto_dst = 'Ortho-MEC-Malt/Param-Tawny.xml'
         io.copy(porto_src, porto_dst)
-        
-	system.run('{mm3d} Tawny Ortho-MEC-Malt/'.format(**kwargs_malt))
-
+        #system.run('{mm3d} Porto Ortho-MEC-Malt/Param-Tawny.xml'.format(**kwargs_malt))
+        system.run('{mm3d} Tawny Ortho-MEC-Malt/'.format(**kwargs_malt))
+	
+        progressbc.send_update(10)
+	
 	## merge ortho tiles
 	kwargs_tiles = {
             'tiles_merge': tiles_merge
@@ -467,9 +469,6 @@ if __name__ == '__main__':
         system.run('{tiles_merge}'.format(**kwargs_tiles))
 
         progressbc.send_update(10)
-        system.run('{mm3d} Tawny Ortho-MEC-Malt'.format(**kwargs_malt))
-        
-        progressbc.send_update(90)
 
         # build PLY
         kwargs_nuage = {
