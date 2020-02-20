@@ -1,3 +1,4 @@
 Shapely
 utm
 pyproj==2.2.0
+skimage
