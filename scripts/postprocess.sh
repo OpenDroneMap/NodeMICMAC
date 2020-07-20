@@ -74,6 +74,7 @@ fi
 pointcloud_input_path=""
 for path in "odm_georeferencing/odm_georeferenced_model.laz" \
             "odm_georeferencing/odm_georeferenced_model.las" \
+	    "odm_georeferencing/odm_georeferenced_model.ply" \
             "odm_filterpoints/point_cloud.ply" \
             "opensfm/depthmaps/merged.ply" \
             "smvs/smvs_dense_point_cloud.ply" \
