@@ -22,6 +22,7 @@ RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted
 RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org appsettings
 RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org Shapely
 RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org utm
+RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org pyproj==2.2.0
 
 RUN curl --silent --location https://deb.nodesource.com/setup_10.x | bash -
 RUN apt-get install -y nodejs python-gdal libboost-dev libboost-program-options-dev git cmake

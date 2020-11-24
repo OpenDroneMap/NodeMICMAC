@@ -157,6 +157,121 @@ def create_lcd(image_dir, image_ext, ccd_width, ccd_height):
         f.write('</Global>\n')
 
 
+def convert_gcp(gcp_dir, utm_zone, hemisphere):
+    '''
+    Convert MicMac GCP TXT files to MicMac GCP XML format
+    :param image_dir: path
+    :return:
+
+    Expects files to be named, DroneMapperGCP_2D.txt and DroneMapperGCP_3D.txt or ODM format: gcp_list.txt
+
+    DroneMapperGCP_2D.txt format (single space delimiter):
+    GCP IMAGENAME PIXELX PIXELY
+
+    DroneMapperGCP_3D.txt format (single space delimiter):
+    GCP UTMX UTMY Z PRECISION X/Y PRECISIONZ
+    '''
+    from opendm import gcp
+
+    log.MM_INFO('Converting GCP.')
+
+    gcp_files = os.listdir(gcp_dir)
+    for file in gcp_files:
+        if '3d' in file.lower():
+            gcp_3d_file = file
+        if '2d' in file.lower():
+            gcp_2d_file = file
+        if 'gcp_list' in file.lower():
+            gcp_file = gcp.GCPFile(os.path.join(gcp_dir, file))
+            gcp_file.make_micmac_copy(gcp_dir, utm_zone='WGS84 UTM {}{}'.format(utm_zone, hemisphere))
+            gcp_2d_file = '2d_gcp.txt'
+            gcp_3d_file = '3d_gcp.txt'
+
+    # MicMac GCP 2D - target locations in images
+    # GCPNAME IMAGE PIXELX PIXELY
+    MM2D = namedtuple('MM2D', ['gcp', 'img', 'px', 'py'])
+
+    with open(io.join_paths(gcp_dir, gcp_2d_file), 'r') as f2d_txt:
+        lines = (l.split() for l in f2d_txt.readlines())
+        images = [MM2D(gcp=l[0].strip(),
+                        img=l[1].strip(),
+                        px=l[2].strip(),
+                        py=l[3].strip())
+                  for l in lines]
+
+    with open(io.join_paths(image_dir, 'images.xml'), 'wb') as images_xml:
+        images_xml.write('<?xml version="1.0"?>\n')
+        images_xml.write('<SetOfMesureAppuisFlottants>\n')
+        for image in images:
+            log.MM_INFO('GCP in image {}'.format(image))
+            gcp = image[0]
+            img = image[1]
+            px = image[2]
+            py = image[3]
+            images_xml.write('\t<MesureAppuiFlottant1Im>\n')
+            name_im = '\t\t<NameIm> {} </NameIm>\n'.format(img)
+            images_xml.write(name_im)
+            images_xml.write('\t\t<OneMesureAF1I>\n')
+            name_pt = '\t\t\t<NamePt> {} </NamePt>\n'.format(gcp)
+            images_xml.write(name_pt)
+            pt_im = '\t\t\t<PtIm> {} {} </PtIm>\n'.format(px, py)
+            images_xml.write(pt_im)
+            images_xml.write('\t\t</OneMesureAF1I>\n')
+            images_xml.write('\t</MesureAppuiFlottant1Im>\n')
+        images_xml.write('</SetOfMesureAppuisFlottants>\n')
+
+    # MicMac GCP 3D - real world target position on ground (UTM)
+    # GCPNAME UTMX UTMY Z PRECISIONXY PRECISIONZ
+    MM3D = namedtuple('MM3D', ['gcp', 'x', 'y', 'z', 'pxy', 'pz'])
+
+    with open(io.join_paths(gcp_dir, gcp_3d_file), 'r') as f3d_txt:
+        lines = (l.split() for l in f3d_txt.readlines())
+        coords = [MM3D(gcp=l[0].strip(),
+                        x=l[1].strip(),
+                        y=l[2].strip(),
+                        z=l[3].strip(),
+                        pxy=l[4].strip(),
+                        pz=l[5].strip())
+                  for l in lines]
+
+    with open(io.join_paths(image_dir, 'ground.xml'), 'wb') as ground_xml:
+        ground_xml.write('<?xml version="1.0"?>\n')
+        ground_xml.write('<Global>\n')
+        ground_xml.write('\t<DicoAppuisFlottant>\n')
+        for c in coords:
+            log.MM_INFO('GCP on ground {}'.format(c))
+            gcp = c[0]
+            x = c[1]
+            y = c[2]
+            z = c[3]
+            pxy = c[4]
+            pz = c[5]
+            ground_xml.write('\t\t<OneAppuisDAF>\n')
+            pt = '\t\t\t<Pt> {} {} {} </Pt>\n'.format(x, y, z)
+            ground_xml.write(pt)
+            name_pt = '\t\t\t<NamePt> {} </NamePt>\n'.format(gcp)
+            ground_xml.write(name_pt)
+            precision = '\t\t\t<Incertitude> {} {} {} </Incertitude>\n'.format(pxy, pxy, pz)
+            ground_xml.write(precision)
+            ground_xml.write('\t\t</OneAppuisDAF>\n')
+        ground_xml.write('\t</DicoAppuisFlottant>\n')
+        ground_xml.write('</Global>\n')
+
+
+def remove_ortho_tiles():
+    '''
+    Remove every other orthomosaic tile. Optimizes color balance and radiometric routine,
+    speeds up ortho generation using Porto/Tawny module.
+    '''
+    ort_files = 'Ortho-MEC-Malt/Ort_*.tif'
+    if glob.glob(ort_files):
+        tiles = glob.glob(ort_files)
+        tiles.sort(key=lambda f: int(filter(str.isdigit, f)))
+        for tile in tiles[::2]:
+            os.remove(tile)
+            log.MM_INFO('Removing ortho tile {}'.format(tile))
+
+
 # RUN
 if __name__ == '__main__':
 
@@ -169,6 +284,7 @@ if __name__ == '__main__':
 
     project_dir = io.join_paths(args.project_path, args.name)
     image_dir = io.join_paths(project_dir, 'images')
+    gcp_dir = io.join_paths(project_dir, 'gcp')
 
     IN_DOCKER = os.environ.get('DEBIAN_FRONTEND', False)
 
@@ -261,7 +377,11 @@ if __name__ == '__main__':
             'ext': image_ext,
             'mm3d': mm3d
         }
-        system.run('{mm3d} CenterBascule .*.{ext} RadialStd RAWGNSS_N Ground_Init_RTL'.format(**kwargs_bascule))
+        if args.gcp:
+            convert_gcp(gcp_dir, projection['utm_zone'], projection['hemisphere'][0].upper())
+            system.run('{mm3d} GCPBascule .*.{ext} RadialStd Ground_Init_RTL ground.xml images.xml ShowD=1'.format(**kwargs_bascule))
+        else:
+            system.run('{mm3d} CenterBascule .*.{ext} RadialStd RAWGNSS_N Ground_Init_RTL'.format(**kwargs_bascule))
 
         progressbc.send_update(50)
 
@@ -270,17 +390,25 @@ if __name__ == '__main__':
             'ext': image_ext,
             'mm3d': mm3d
         }
-        system.run('{mm3d} Campari .*.{ext} Ground_Init_RTL Ground_RTL '
-            'EmGPS=[RAWGNSS_N,5] AllFree=0'.format(**kwargs_campari))
+        if args.gcp:
+            system.run('{mm3d} Campari .*.{ext} Ground_Init_RTL Ground_RTL '
+                'GCP=[ground.xml,0.005,images.xml,0.01] NbIterEnd=6 AllFree=1 DetGCP=1'.format(**kwargs_campari))
+        else:
+            system.run('{mm3d} Campari .*.{ext} Ground_Init_RTL Ground_RTL '
+                'EmGPS=[RAWGNSS_N,5] AllFree=0'.format(**kwargs_campari))
 
         progressbc.send_update(60)
 
-        # change projection and system coords to UTM from relative
+        # change projection and system coords to UTM from relative for GPS only
         kwargs_chg = {
             'ext': image_ext,
             'mm3d': mm3d
         }
-        system.run('{mm3d} ChgSysCo .*.{ext} Ground_RTL RTLFromExif.xml@SysUTM.xml Ground_UTM'.format(**kwargs_chg))
+        if args.gcp:
+            io.copy('Ori-Ground_RTL', 'Ori-Ground_UTM')
+            system.run('{mm3d} GCPCtrl .*.{ext} Ground_UTM ground.xml images.xml'.format(**kwargs_chg))
+        else:
+            system.run('{mm3d} ChgSysCo .*.{ext} Ground_RTL RTLFromExif.xml@SysUTM.xml Ground_UTM'.format(**kwargs_chg))
 
         progressbc.send_update(65)
 
@@ -319,7 +447,17 @@ if __name__ == '__main__':
         progressbc.send_update(80)
 
         # build ORTHO
-        system.run('{mm3d} Tawny Ortho-MEC-Malt RadiomEgal=1 DegRapXY=4 SzV=25'.format(**kwargs_malt))
+        if args.remove_ortho_tiles:
+            remove_ortho_tiles()
+
+        if IN_DOCKER:
+            porto_src = '/code/micmac/include/XML_MicMac/Param-Tawny.xml'
+        else:
+            porto_src = '/home/drnmppr-micmac/include/XML_MicMac/Param-Tawny.xml' # for dev: locally installed micmac branch
+
+        porto_dst = 'Ortho-MEC-Malt/Param-Tawny.xml'
+        io.copy(porto_src, porto_dst)
+        system.run('{mm3d} Porto Ortho-MEC-Malt/Param-Tawny.xml'.format(**kwargs_malt))
 
         progressbc.send_update(90)
 
