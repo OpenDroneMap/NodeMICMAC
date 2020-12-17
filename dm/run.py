@@ -123,8 +123,7 @@ def get_last_etape(file_str):
     '''
     if glob.glob(file_str):
         etape_files = glob.glob(file_str)
-        etape_files.sort(key=lambda f: int(filter(str.isdigit, f)))
-        return etape_files[-1]
+        return sorted(etape_files)[-1]
 
 
 def create_lcd(image_dir, image_ext, ccd_width, ccd_height):
@@ -137,11 +136,11 @@ def create_lcd(image_dir, image_ext, ccd_width, ccd_height):
     :return:
     '''
     image_wildcard = '*.{}'.format(image_ext)
-    image_files = glob.glob(io.join_paths(image_dir, image_wildcard))
-    image_files.sort(key=lambda f: int(filter(str.isdigit, f)))
-    camera_model = subprocess.check_output(['exiftool', '-Model', '-T', image_files[0]])
-    with open(io.join_paths(image_dir, 'MicMac-LocalChantierDescripteur.xml'), 'wb') as f:
-        f.write('<Global>\n')
+    image_files = sorted(glob.glob(io.join_paths(image_dir, image_wildcard)))
+    camera_model = (subprocess.check_output(['exiftool', '-Model', '-T', image_files[0]])).decode('utf-8')
+    log.MM_INFO('Camera Model extraction OK : {}'.format(camera_model))
+    with open(io.join_paths(image_dir, 'MicMac-LocalChantierDescripteur.xml'), 'w', encoding="utf-8") as f:
+        f.write("<Global>\n")
         f.write('\t<ChantierDescripteur>\n')
         f.write('\t\t<LocCamDataBase>\n')
         f.write('\t\t\t<CameraEntry>\n')
@@ -155,6 +154,7 @@ def create_lcd(image_dir, image_ext, ccd_width, ccd_height):
         f.write('\t\t</LocCamDataBase>\n')
         f.write('\t</ChantierDescripteur>\n')
         f.write('</Global>\n')
+        log.MM_INFO('Successfully setup custom MicMac-LocalChantierDescripteur.xml with sensor size : {} {}'.format(ccd_width, ccd_height))
 
 
 def convert_gcp(gcp_dir, utm_zone, hemisphere):
@@ -163,12 +163,12 @@ def convert_gcp(gcp_dir, utm_zone, hemisphere):
     :param image_dir: path
     :return:
 
-    Expects files to be named, DroneMapperGCP_2D.txt and DroneMapperGCP_3D.txt or ODM format: gcp_list.txt
+    Expects files to be named, GCP_2D.txt and GCP_3D.txt or ODM format: gcp_list.txt
 
-    DroneMapperGCP_2D.txt format (single space delimiter):
+    GCP_2D.txt format (single space delimiter):
     GCP IMAGENAME PIXELX PIXELY
 
-    DroneMapperGCP_3D.txt format (single space delimiter):
+    GCP_3D.txt format (single space delimiter):
     GCP UTMX UTMY Z PRECISION X/Y PRECISIONZ
     '''
     from opendm import gcp
@@ -199,7 +199,7 @@ def convert_gcp(gcp_dir, utm_zone, hemisphere):
                         py=l[3].strip())
                   for l in lines]
 
-    with open(io.join_paths(image_dir, 'images.xml'), 'wb') as images_xml:
+    with open(io.join_paths(image_dir, 'images.xml'), 'w', encoding="utf-8") as images_xml:
         images_xml.write('<?xml version="1.0"?>\n')
         images_xml.write('<SetOfMesureAppuisFlottants>\n')
         for image in images:
@@ -234,7 +234,7 @@ def convert_gcp(gcp_dir, utm_zone, hemisphere):
                         pz=l[5].strip())
                   for l in lines]
 
-    with open(io.join_paths(image_dir, 'ground.xml'), 'wb') as ground_xml:
+    with open(io.join_paths(image_dir, 'ground.xml'), 'w', encoding="utf-8") as ground_xml:
         ground_xml.write('<?xml version="1.0"?>\n')
         ground_xml.write('<Global>\n')
         ground_xml.write('\t<DicoAppuisFlottant>\n')
@@ -265,8 +265,7 @@ def remove_ortho_tiles():
     '''
     ort_files = 'Ortho-MEC-Malt/Ort_*.tif'
     if glob.glob(ort_files):
-        tiles = glob.glob(ort_files)
-        tiles.sort(key=lambda f: int(filter(str.isdigit, f)))
+        tiles = sorted(glob.glob(ort_files))
         for tile in tiles[::2]:
             os.remove(tile)
             log.MM_INFO('Removing ortho tile {}'.format(tile))
@@ -291,7 +290,7 @@ if __name__ == '__main__':
     if IN_DOCKER:
         mm3d = 'mm3d'
     else:
-        mm3d = '/home/drnmppr-micmac/bin/mm3d' # for dev: locally installed micmac branch
+        mm3d = '/opt/micmac/bin/mm3d' # for dev: locally installed micmac branch
 
     try:
         log.MM_INFO('Starting..')
@@ -334,12 +333,12 @@ if __name__ == '__main__':
         if args.matcher_distance:
             log.MM_INFO('Image pairs by distance: {}'.format(args.matcher_distance))
             system.run('{mm3d} OriConvert "#F=N X Y Z" GpsCoordinatesFromExif.txt RAWGNSS_N '
-                'ChSys=DegreeWGS84@RTLFromExif.xml MTD1=1 NameCple=dronemapperPair.xml '
+                'ChSys=DegreeWGS84@RTLFromExif.xml MTD1=1 NameCple=ImagePair.xml '
                 'DN={distance}'.format(**kwargs_ori))
         else:
             log.MM_INFO('Image pairs by auto-distance')
             system.run('{mm3d} OriConvert "#F=N X Y Z" GpsCoordinatesFromExif.txt RAWGNSS_N '
-                'ChSys=DegreeWGS84@RTLFromExif.xml MTD1=1 NameCple=dronemapperPair.xml DN='.format(**kwargs_ori))
+                'ChSys=DegreeWGS84@RTLFromExif.xml MTD1=1 NameCple=ImagePair.xml DN='.format(**kwargs_ori))
 
         progressbc.send_update(5)
 
@@ -355,10 +354,10 @@ if __name__ == '__main__':
             'mm3d': mm3d
         }
         if args.multi_scale:
-            system.run('{mm3d} Tapioca MulScaleFile dronemapperPair.xml .*.{ext} '
+            system.run('{mm3d} Tapioca MulScaleFile ImagePair.xml .*.{ext} '
                 '{image_size} {mulscale_size} ByP={num_cores}'.format(**kwargs_tapioca))
         else:
-            system.run('{mm3d} Tapioca File dronemapperPair.xml {image_size} ByP={num_cores}'.format(**kwargs_tapioca))
+            system.run('{mm3d} Tapioca File ImagePair.xml {image_size} ByP={num_cores}'.format(**kwargs_tapioca))
 
         progressbc.send_update(30)
 
@@ -420,6 +419,7 @@ if __name__ == '__main__':
                 'ply': '../odm_georeferencing/camera_cloud_utm.ply' # use ../ here for work-around to AperiCloud bug
             }
             system.run('{mm3d} AperiCloud .*.{ext} Ground_UTM Out={ply} Bin=0'.format(**kwargs_camera_cloud))
+            log.MM_INFO('Successfully export Cameras positions')
 
         progressbc.send_update(70)
 
@@ -428,9 +428,16 @@ if __name__ == '__main__':
             kwargs_image_footprint = {
                 'ext': image_ext,
                 'mm3d': mm3d,
-                'ply': io.join_paths(project_dir, 'odm_georeferencing/image_footprint_wgs84.ply')
+                'epsg': 4326, # Wrong : Point Cloud is in UTM. Need to extract projection 
+                'ply': io.join_paths(project_dir, 'odm_georeferencing/image_footprint_wgs84.ply'),
+                'ply_utm': io.join_paths(project_dir, 'odm_georeferencing/image_footprint_utm.ply'),
+                'sed_arg': 's/} }, \]\ }/} } \]\ }/g'
+                
             }
-            system.run('{mm3d} DroneFootPrint .*.{ext} Ground_UTM Out={ply} CodeProj=4326 Resol=[2000,0]'.format(**kwargs_image_footprint))
+            system.run('{mm3d} DroneFootPrint .*.{ext} Ground_UTM Out={ply} CodeProj={epsg} Resol=[2000,0]'.format(**kwargs_image_footprint))
+            # Make a valid geojson
+            system.run("tr '\n' ' ' < {ply}.geojson > image_footprint_utm.geojson && sed -i '{sed_arg}' image_footprint_utm.geojson && mv image_footprint_utm.geojson {ply_utm}.geojson && rm {ply}.geojson && mv {ply} {ply_utm}".format(**kwargs_image_footprint))
+            log.MM_INFO('Successfully export images footprint with EPSG:{epsg} projection'.format(**kwargs_image_footprint))
 
         progressbc.send_update(75)
 
@@ -438,11 +445,11 @@ if __name__ == '__main__':
         kwargs_malt = {
             'num_cores': args.max_concurrency,
             'ext': image_ext,
-            'zoom': args.zoom,
+            'zoom': int(args.zoom),
             'mm3d': mm3d
         }
-        system.run('{mm3d} Malt Ortho .*.{ext} Ground_UTM EZA=1 ZoomI=64 ZoomF={zoom} NbVI=2 HrOr=1 '
-            'RoundResol=0 ResolOrtho=1 DefCor=0.0005 NbProc={num_cores}'.format(**kwargs_malt))
+        system.run('{mm3d} Malt Ortho .*.{ext} Ground_UTM EZA=1 ZoomI=64 ZoomF={zoom} NbVI=2 HrOr=1 RoundResol=0 ResolOrtho=1 DefCor=0.0005 NbProc={num_cores}'.format(**kwargs_malt))
+        log.MM_INFO('Successfull DEM build')
 
         progressbc.send_update(80)
 
@@ -453,11 +460,12 @@ if __name__ == '__main__':
         if IN_DOCKER:
             porto_src = '/code/micmac/include/XML_MicMac/Param-Tawny.xml'
         else:
-            porto_src = '/home/drnmppr-micmac/include/XML_MicMac/Param-Tawny.xml' # for dev: locally installed micmac branch
+            porto_src = '/opt/micmac/include/XML_MicMac/Param-Tawny.xml' # for dev: locally installed micmac branch
 
         porto_dst = 'Ortho-MEC-Malt/Param-Tawny.xml'
         io.copy(porto_src, porto_dst)
         system.run('{mm3d} Porto Ortho-MEC-Malt/Param-Tawny.xml'.format(**kwargs_malt))
+        log.MM_INFO('Orthophoto generated sucessfully')
 
         progressbc.send_update(90)
 
@@ -486,6 +494,6 @@ if __name__ == '__main__':
 
         exit(0)
 
-    except Exception, e:
+    except Exception as e:
         log.MM_ERROR(e)
         exit(1)

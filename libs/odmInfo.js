@@ -75,12 +75,14 @@ module.exports = {
 
                     switch((values.type || "").trim()){
                         case "<type 'int'>":
+                        case "<class 'int'>":
                             type = "int";
                             value = values['default'] !== undefined ? 
                                             parseInt(values['default']) :
                                             0;
                             break;
                         case "<type 'float'>":
+                        case "<class 'float'>":
                             type = "float";
                             value = values['default'] !== undefined ? 
                                             parseFloat(values['default']) :
@@ -222,6 +224,20 @@ module.exports = {
                         }
                     }
                 },
+
+                {
+                    regex: /^(json)$/,
+                    validate: function(matches, value){
+                        try{
+                            if (typeof value !== 'string') return false;
+                            JSON.parse(value);
+                            return true;
+                        }catch(e){
+                            return false;
+                        }
+                    }
+                },
+
                 {
                     regex: /^(string|path)$/,
                     validate: function(){

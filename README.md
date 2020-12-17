@@ -28,7 +28,7 @@ This list is not by order of importance.
 - [ ] Oblique Imagery and/or 3D Model
 - [x] Conform / Rename Outputs to ODM Conventions
 - [x] Wire Up 2D and Potree Tile Creation
-- [x] Multi-Scale Tie-Point Generation (Similar to Photoscan)
+- [x] Multi-Scale Tie-Point Generation (Speed up processing by switching to image resolution)
 - [ ] Export Undistorted Images
 - [ ] Utilize RPY Omega Phi Kappa
 - [x] Sparse Point Cloud w/ Camera Position
@@ -61,7 +61,7 @@ Note: This project currently creates a geo-referenced DEM and Ortho from our 4th
 ![Greg12 Ortho](docs/readme_greg12_ortho_gcp.png)
 ![Greg12 GCP1](docs/readme_greg12_gcp1.png)
 
-* Results clipped to an AOI and displayed using Global Mapper [GlobalMapper](https://bluemarblegeo.com)
+* Results clipped to an AOI
 
 ## Mission Planning / Execution
 
@@ -77,12 +77,12 @@ We recommend that you setup NodeMICMAC using [Docker](https://www.docker.com/).
 
 * Docker image build:
 ```
-docker build -t dronemapper/node-micmac .
+docker build -t odm/node-micmac .
 ```
 
 * From the Docker Quickstart Terminal (Windows / OSX) or from the command line (Linux) type:
 ```
-docker run -p 3000:3000 dronemapper/node-micmac
+docker run -p 3000:3000 odm/node-micmac
 ```
 
 * If you're on Windows/OSX, find the IP of your Docker machine by running this command from your Docker Quickstart Terminal:
@@ -105,7 +105,7 @@ If the computer running NodeMICMAC is using an old or 32bit CPU, you need to com
 For GCP processing, you will need to include two files in txt format. Examples of the files are shown
 below.
 
-`DroneMapperGCP_3D.txt`
+`GCP_3D.txt`
 
 `GCPNAME UTMX UTMY Z PRECISIONXY PRECISIONZ`
 ```$xslt
@@ -122,7 +122,7 @@ hg2 250117.42 4319009.086 2565.418 0.005 0.005
 sw2 250159.165 4319019.774 2567.198 0.005 0.005
 ```
 
-`DroneMapperGCP_2D.txt`
+`GCP_2D.txt`
 
 `GCPNAME IMAGENAME PIXELX PIXELY`
 ```$xslt
@@ -219,7 +219,7 @@ optional arguments:
                         Distance threshold in meters to find pre-matching
                         images based on GPS exif data. Default: 0 (use auto-distance)
   --multi-scale         Uses an image file pair based multi-scale tie-point
-                        generation routine similar to Photoscan.
+                        generation routine.
   --remove-ortho-tiles  Remove every other ortho tile. Speeds up ortho creation and radiometric equalization.
   --camera-cloud        Creates a sparse point cloud with camera positions
   --image-footprint     Creates a point cloud and geojson with image footprints
@@ -283,7 +283,7 @@ make && sudo make install
 ```bash
 sudo curl --silent --location https://deb.nodesource.com/setup_6.x | sudo bash -
 sudo apt-get install -y nodejs python-gdal
-git clone hhttps://github.com/dronemapper-io/NodeMICMAC.git
+git clone hhttps://github.com/OpenDroneMap/NodeMICMAC.git
 cd NodeMICMAC
 npm install
 ```

@@ -1,6 +1,8 @@
 "use strict";
 
 const path = require('path');
+const os = require('os');
+const crypto = require('crypto');
 
 module.exports = {
     get: function(scope, prop, defaultValue){
@@ -44,5 +46,13 @@ module.exports = {
             const safeSuffix = path.normalize(p).replace(/^(\.\.(\/|\\|$))+/, '');
             return path.join('./', safeSuffix);
         });
+    },
+
+    clone: function(json){
+        return JSON.parse(JSON.stringify(json));
+    },
+
+    tmpPath: function(extension = ".txt"){
+        return path.join(os.tmpdir(), `nodeodm_${crypto.randomBytes(6).readUIntLE(0,6).toString(36)}${extension}`);
     }
 };
