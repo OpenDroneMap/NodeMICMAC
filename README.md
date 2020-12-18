@@ -1,5 +1,4 @@
 # NodeMICMAC
-<img src="https://dsy5mvbgl2i1x.cloudfront.net/wp-content/uploads/2018/01/dm_logo1_inv.png" width="300px"><br/><br/>
 
 NodeMICMAC is a Node.js App and REST API to access [MicMac](https://github.com/micmacIGN/micmac). It exposes an API which is used by [WebODM](https://github.com/OpenDroneMap/WebODM) or other projects.
 This project is sponsored and developed by [DroneMapper](https://dronemapper.com). This repository was originally forked from [NodeODM](https://github.com/OpenDroneMap/NodeODM), which is part of the [OpenDroneMap](https://www.opendronemap.org/) Project.
@@ -367,3 +366,6 @@ Stay current with upstream MicMac development providing an easy to use interface
 ## MicMac Version
 
 Cloned: 04-26-2019 Commit: [fec03b2](https://github.com/micmacIGN/micmac/commit/fec03b2b9596886f9b929f5b663bbded3ae591c0)
+MicMac is under CeCill-B License
+Original running project could be find following this link : http://logiciels.ign.fr/?Micmac
+
