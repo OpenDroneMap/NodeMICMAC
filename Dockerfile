@@ -82,6 +82,7 @@ RUN cd micmac && \
 ENV PATH "$PATH:/code/micmac/bin"
 
 RUN ln -s "$(which python3)" /usr/bin/python
+ENV python "$(which python3)"
 RUN figlet -f slant NodeMICMAC
 
 RUN mkdir /code/opendm
