@@ -30,7 +30,7 @@ RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --truste
 RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org pyproj #==2.2.0
 RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org scikit-image
 
-RUN curl --silent --location https://deb.nodesource.com/setup_10.x | bash -
+RUN curl --silent --location https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get install -y nodejs python3-gdal libboost-dev libboost-program-options-dev git cmake
 RUN npm install -g nodemon
 
@@ -58,8 +58,8 @@ WORKDIR "/var/www"
 COPY . /var/www
 
 RUN npm install
-RUN mkdir tmp
-RUN mkdir /code
+RUN mkdir -p tmp
+RUN mkdir -p /code
 
 RUN git clone https://github.com/dronemapper-io/micmac.git
 
@@ -85,7 +85,7 @@ RUN ln -s "$(which python3)" /usr/bin/python
 ENV python "$(which python3)"
 RUN figlet -f slant NodeMICMAC
 
-RUN mkdir /code/opendm
+RUN mkdir -p /code/opendm
 COPY dm/opendm /code/opendm
 COPY dm/odm_options.json /code
 COPY dm/settings.yaml /code
