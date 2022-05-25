@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "NodeMICMAC by DroneMapper.com"
+echo "NodeMICMAC"
 
 RUNPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 $RUNPATH/run.py "$@"

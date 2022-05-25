@@ -1,31 +1,37 @@
-FROM ubuntu:18.04
-MAINTAINER Jon-Pierre Stoermer <jp@dronemapper.com>
+FROM ubuntu:20.04
 
 EXPOSE 3000
 
-ENV TZ=US/Mountain
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+# ENV TZ=US/Mountain
+# RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ENV DEBIAN_FRONTEND noninteractive
 
 USER root
 
-RUN apt-get update && apt-get install -y --no-install-recommends apt-utils \
+RUN apt update
+RUN apt install -y -qq tzdata
+RUN apt install -y -qq --no-install-recommends software-properties-common
+RUN add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
+RUN apt-get update && apt install -y --no-install-recommends apt-utils \
 x11proto-core-dev make cmake libx11-dev git ca-certificates imagemagick gcc g++ \
-exiv2 libimage-exiftool-perl libgeo-proj4-perl \
+exiv2 libimage-exiftool-perl build-essential gpg-agent \
 mesa-common-dev libgl1-mesa-dev libglapi-mesa libglu1-mesa opencl-headers \
-proj-bin gdal-bin python-gdal graphicsmagick php figlet vim curl libboost-all-dev less
+proj-bin gdal-bin graphicsmagick php figlet vim curl libboost-all-dev less
 
-RUN apt-get update -y && apt-get install -y --no-install-recommends openssl python-pip
-RUN pip install --upgrade --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org pip
+RUN apt update -y && apt install -y -qq --no-install-recommends openssl python3-pip python3-setuptools
+RUN pip3 install -U pip
+RUN pip3 install -U shyaml
+#RUN pip3 install --upgrade --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org pip
 
-RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org setuptools
-RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org appsettings
-RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org Shapely
-RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org utm
-RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org pyproj==2.2.0
+RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org setuptools
+RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org appsettings
+RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org Shapely
+RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org utm
+RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org pyproj #==2.2.0
+RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org scikit-image
 
 RUN curl --silent --location https://deb.nodesource.com/setup_10.x | bash -
-RUN apt-get install -y nodejs python-gdal libboost-dev libboost-program-options-dev git cmake
+RUN apt-get install -y nodejs python3-gdal libboost-dev libboost-program-options-dev git cmake
 RUN npm install -g nodemon
 
 # Build LASzip and PotreeConverter
@@ -57,7 +63,8 @@ RUN mkdir /code
 
 RUN git clone https://github.com/dronemapper-io/micmac.git
 
-RUN cd micmac && rm -rf build && mkdir build && cd build && \
+RUN cd micmac && \ 
+    rm -rf build && mkdir build && cd build && \
     cmake \
     	-DBUILD_POISSON=0 \
     	-DBUILD_RNX2RTKP=0 \
@@ -68,13 +75,15 @@ RUN cd micmac && rm -rf build && mkdir build && cd build && \
     	../ && \
       make clean && \
       make -j$(cat /proc/cpuinfo | grep processor | wc -l) && make install && \
-      mkdir /code/micmac && \
+      mkdir -p /code/micmac && \
       cd .. && \
       cp -Rdp bin binaire-aux lib include /code/micmac
 
 ENV PATH "$PATH:/code/micmac/bin"
 
-RUN figlet -f slant DRONEMAPPER
+RUN ln -s "$(which python3)" /usr/bin/python
+ENV python "$(which python3)"
+RUN figlet -f slant NodeMICMAC
 
 RUN mkdir /code/opendm
 COPY dm/opendm /code/opendm
@@ -88,4 +97,4 @@ COPY dm/run.py /code
 
 WORKDIR "/var/www"
 
-ENTRYPOINT ["/usr/bin/nodejs", "/var/www/index.js"]
+ENTRYPOINT ["/usr/bin/node", "/var/www/index.js"]
