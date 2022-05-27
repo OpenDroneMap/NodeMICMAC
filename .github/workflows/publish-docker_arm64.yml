@@ -12,8 +12,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
-    timeout-minutes: 1080
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -39,9 +38,14 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         file: ./Dockerfile
-        platforms: linux/arm64
-        timeout-minutes: 1080
+        platforms: linux/amd64
         push: true
         tags: |
           ${{ steps.docker_meta.outputs.tags }}
-          opendronemap/nodemicmac:latest
+          opendronemap/nodemicmac:latest          
+    - name: Update repo description
+        uses: peter-evans/dockerhub-description@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          repository: user/app
