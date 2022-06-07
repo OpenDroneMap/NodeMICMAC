@@ -40,6 +40,9 @@ const auth = require('./libs/auth/factory').fromConfig(config);
 const authCheck = auth.getMiddleware();
 const taskNew = require('./libs/taskNew');
 
+app.use(cors())
+app.options('*', cors())
+
 app.use(express.static('public'));
 app.use('/swagger.json', express.static('docs/swagger.json'));
 
