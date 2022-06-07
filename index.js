@@ -25,6 +25,7 @@ const logger = require('./libs/logger');
 const async = require('async');
 const mime = require('mime');
 
+const cors = require('cors')
 const express = require('express');
 const app = express();
 
