@@ -61,12 +61,6 @@ RUN npm install
 RUN mkdir -p tmp
 RUN mkdir -p /code
 
-
-#RUN git clone https://github.com/dronemapper-io/micmac.git
-
-# latest fork from https://github.com/micmacIGN/micmac
-# and changes from https://github.com/dronemapper-io/micmac
-
 RUN git clone https://github.com/rumenmitrev/micmac
 
 RUN cd micmac && \ 
