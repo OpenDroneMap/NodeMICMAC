@@ -364,7 +364,7 @@ Stay current with upstream MicMac development providing an easy to use interface
 
 ## MicMac Version
 
-Cloned: 04-26-2019 Commit: [fec03b2](https://github.com/micmacIGN/micmac/commit/fec03b2b9596886f9b929f5b663bbded3ae591c0)
+Cloned: 2022-06-05 Commit: [797e98d](https://github.com/micmacIGN/micmac/commit/797e98d69f59fc7879d143353a94b06d970a9a24)
 MicMac is under CeCill-B License
 Original running project could be find following this link : http://logiciels.ign.fr/?Micmac
 
