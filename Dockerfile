@@ -61,7 +61,7 @@ RUN npm install
 RUN mkdir -p tmp
 RUN mkdir -p /code
 
-RUN git clone https://github.com/rumenmitrev/micmac
+RUN git clone https://github.com/OpenDroneMap/micmac
 
 RUN cd micmac && \ 
     rm -rf build && mkdir build && cd build && \
