@@ -376,3 +376,5 @@ This project was originally developed by [DroneMapper](https://dronemapper.com).
 [Sylvain POULAIN - GISCAN](https://giscan.com)
 
 [IRD](https://ird.fr)
+
+[RumenMitrev](https://github.com/rumenmitrev)
