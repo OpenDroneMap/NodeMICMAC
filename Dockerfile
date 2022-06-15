@@ -48,7 +48,7 @@ RUN cd /staging/entwine && \
 	-DCMAKE_BUILD_TYPE=Release \
 	../ && \
 	make -j$(cat /proc/cpuinfo | grep processor | wc -l) && \
-	make install	
+	make install && ln -s /usr/local/lib/libentwine.so.2 /usr/lib/libentwine.so.2
 
 RUN mkdir /var/www
 
