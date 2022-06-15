@@ -40,12 +40,15 @@ RUN npm install -g nodemon
 WORKDIR "/staging"
 RUN git clone https://github.com/OpenDroneMap/entwine /staging/entwine
 RUN cd /staging/entwine && \
-	mkdir build && \
-	cd build && \
-	cmake -DWITH_TESTS=OFF -DCMAKE_BUILD_TYPE=Release .. && \
-	make -j$(cat /proc/cpuinfo | grep processor | wc -l) && \
-	make install && ln -s /usr/local/lib/libentwine.so.2 /usr/lib/libentwine.so.2
-	
+    mkdir build && \
+    cd build && \
+    cmake \
+        -DCMAKE_INSTALL_PREFIX='/usr' \
+        -DWITH_TESTS=OFF \
+	-DCMAKE_BUILD_TYPE=Release \
+	../ && \
+    make -j$(cat /proc/cpuinfo | grep processor | wc -l) && \
+    make install	
 
 RUN mkdir /var/www
 
