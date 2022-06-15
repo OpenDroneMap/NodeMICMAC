@@ -44,11 +44,11 @@ RUN cd /staging/entwine && \
     cd build && \
     cmake \
         -DCMAKE_INSTALL_PREFIX='/usr' \
-        -DWITH_TESTS=OFF \
+	-DWITH_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=Release \
 	../ && \
-    make -j$(cat /proc/cpuinfo | grep processor | wc -l) && \
-    make install	
+	make -j$(cat /proc/cpuinfo | grep processor | wc -l) && \
+	make install	
 
 RUN mkdir /var/www
 
