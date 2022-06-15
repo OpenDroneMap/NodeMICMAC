@@ -16,9 +16,7 @@ RUN apt-get update && apt install -y --no-install-recommends apt-utils \
 x11proto-core-dev make cmake libx11-dev git ca-certificates imagemagick gcc g++ \
 exiv2 libimage-exiftool-perl build-essential gpg-agent \
 mesa-common-dev libgl1-mesa-dev libglapi-mesa libglu1-mesa opencl-headers \
-proj-bin gdal-bin graphicsmagick php figlet curl libboost-all-dev less pdal \
-libtbb-dev wget curl libssl-dev libcurl4-openssl-dev pkg-config libpdal-dev libpth-dev
-
+proj-bin gdal-bin graphicsmagick php figlet vim curl libboost-all-dev less
 
 RUN apt update -y && apt install -y -qq --no-install-recommends openssl python3-pip python3-setuptools
 RUN pip3 install -U pip
@@ -36,16 +34,22 @@ RUN curl --silent --location https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get install -y nodejs python3-gdal libboost-dev libboost-program-options-dev git cmake
 RUN npm install -g nodemon
 
-# Build Entwine
+# Build LASzip and PotreeConverter
 WORKDIR "/staging"
-RUN git clone https://github.com/OpenDroneMap/entwine /staging/entwine
-RUN cd /staging/entwine && \
+RUN git clone https://github.com/pierotofy/LAStools /staging/LAStools && \
+	cd LAStools/LASzip && \
 	mkdir build && \
 	cd build && \
-	cmake -DWITH_TESTS=OFF -DCMAKE_BUILD_TYPE=Release .. && \
-	make -j$(cat /proc/cpuinfo | grep processor | wc -l) && \
-	make install && ln -s /usr/local/lib/libentwine.so.2 /usr/lib/libentwine.so.2
-	
+	cmake -DCMAKE_BUILD_TYPE=Release .. && \
+	make
+
+RUN git clone https://github.com/pierotofy/PotreeConverter /staging/PotreeConverter
+RUN cd /staging/PotreeConverter && \
+	mkdir build && \
+	cd build && \
+	cmake -DCMAKE_BUILD_TYPE=Release -DLASZIP_INCLUDE_DIRS=/staging/LAStools/LASzip/dll -DLASZIP_LIBRARY=/staging/LAStools/LASzip/build/src/liblaszip.a .. && \
+	make && \
+	make install
 
 RUN mkdir /var/www
 
