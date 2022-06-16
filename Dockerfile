@@ -9,23 +9,14 @@ ENV DEBIAN_FRONTEND noninteractive
 USER root
 
 RUN apt update
-RUN apt install -y -qq tzdata
 RUN apt install -y -qq --no-install-recommends software-properties-common
 RUN add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
-RUN apt-get update && apt install -y --no-install-recommends apt-utils \
-x11proto-core-dev make cmake libx11-dev git ca-certificates imagemagick gcc g++ \
-exiv2 libimage-exiftool-perl build-essential gpg-agent \
-mesa-common-dev libgl1-mesa-dev libglapi-mesa libglu1-mesa opencl-headers \
-proj-bin gdal-bin graphicsmagick php figlet curl libboost-all-dev less pdal \
-libtbb-dev wget curl libssl-dev libcurl4-openssl-dev pkg-config libpdal-dev libpth-dev
+RUN apt -y --no-install-recommends install make cmake git imagemagick gcc g++ \
+exiv2 libimage-exiftool-perl build-essential proj-bin gdal-bin figlet \
+libboost-all-dev pdal libtbb-dev libssl-dev libcurl4-openssl-dev pkg-config \
+libpdal-dev libpth-dev python3-pip python3-setuptools curl libx11-dev
 
-
-RUN apt update -y && apt install -y -qq --no-install-recommends openssl python3-pip python3-setuptools
-RUN pip3 install -U pip
 RUN pip3 install -U shyaml
-#RUN pip3 install --upgrade --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org pip
-
-RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org setuptools
 RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org appsettings
 RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org Shapely
 RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org utm
@@ -33,12 +24,12 @@ RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --truste
 RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org scikit-image
 
 RUN curl --silent --location https://deb.nodesource.com/setup_14.x | bash -
-RUN apt-get install -y nodejs python3-gdal libboost-dev libboost-program-options-dev git cmake
+RUN apt-get install -y nodejs
 RUN npm install -g nodemon
 
 # Build Entwine
 WORKDIR "/staging"
-RUN git clone https://github.com/OpenDroneMap/entwine /staging/entwine
+RUN git clone --depth 1 https://github.com/OpenDroneMap/entwine /staging/entwine
 RUN cd /staging/entwine && \
     mkdir build && \
     cd build && \
@@ -48,7 +39,7 @@ RUN cd /staging/entwine && \
 	-DCMAKE_BUILD_TYPE=Release \
 	../ && \
 	make -j$(cat /proc/cpuinfo | grep processor | wc -l) && \
-	make install	
+	make install 
 
 RUN mkdir /var/www
 
@@ -60,7 +51,7 @@ RUN npm install
 RUN mkdir -p tmp
 RUN mkdir -p /code
 
-RUN git clone https://github.com/OpenDroneMap/micmac
+RUN git clone --depth 1  https://github.com/OpenDroneMap/micmac
 
 RUN cd micmac && \ 
     rm -rf build && mkdir build && cd build && \
@@ -92,7 +83,7 @@ COPY dm/VERSION /code
 COPY dm/run.sh /code
 COPY dm/run.py /code
 
-#RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN apt clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /staging /var/www/micmac
 
 WORKDIR "/var/www"
 
