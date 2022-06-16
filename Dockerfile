@@ -34,7 +34,7 @@ RUN cd /staging/entwine && \
     mkdir build && \
     cd build && \
     cmake \
-        -DCMAKE_INSTALL_PREFIX='/usr' \
+        -DCMAKE_INSTALL_PREFIX=/usr \
 	-DWITH_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=Release \
 	../ && \
