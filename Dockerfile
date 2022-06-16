@@ -38,7 +38,7 @@ RUN cd /staging/entwine && \
 	-DWITH_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=Release \
 	../ && \
-	make -j$(cat /proc/cpuinfo | grep processor | wc -l) && make install
+	make -j2 && make install
 
 
 RUN mkdir /var/www
