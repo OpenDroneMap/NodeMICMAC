@@ -10,7 +10,7 @@ RUN apt update
 RUN apt install -y -qq --no-install-recommends software-properties-common build-essential cmake git \
     exiv2 libimage-exiftool-perl proj-bin gdal-bin figlet imagemagick pdal libpdal-dev \
     libboost-all-dev libtbb-dev libssl-dev libcurl4-openssl-dev pkg-config libpth-dev \
-    curl libx11-devpython3-pip python3-setuptools python3-shapely
+    curl libx11-dev python3-pip python3-setuptools python3-shapely
 
 RUN pip3 install -U shyaml
 RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org appsettings
