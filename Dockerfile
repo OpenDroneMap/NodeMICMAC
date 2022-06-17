@@ -10,7 +10,7 @@ USER root
 
 RUN apt update
 RUN apt install -y -qq --no-install-recommends software-properties-common
-RUN add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
+# RUN add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
 RUN apt -y --no-install-recommends install make cmake git imagemagick gcc g++ \
 exiv2 libimage-exiftool-perl build-essential proj-bin gdal-bin figlet \
 libboost-all-dev pdal libtbb-dev libssl-dev libcurl4-openssl-dev pkg-config \
