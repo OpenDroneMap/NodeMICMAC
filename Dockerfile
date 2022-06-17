@@ -2,29 +2,24 @@ FROM ubuntu:21.04
 
 EXPOSE 3000
 
-# ENV TZ=US/Mountain
-# RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ENV DEBIAN_FRONTEND noninteractive
 
 USER root
 
 RUN apt update
-RUN apt install -y -qq --no-install-recommends software-properties-common
-# RUN add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
-RUN apt -y --no-install-recommends install make cmake git imagemagick gcc g++ \
-exiv2 libimage-exiftool-perl build-essential proj-bin gdal-bin figlet \
-libboost-all-dev pdal libtbb-dev libssl-dev libcurl4-openssl-dev pkg-config \
-libpdal-dev libpth-dev python3-pip python3-setuptools curl libx11-dev
+RUN apt install -y -qq --no-install-recommends software-properties-common build-essential cmake git \
+    exiv2 libimage-exiftool-perl proj-bin gdal-bin figlet imagemagick pdal libpdal-dev \
+    libboost-all-dev libtbb-dev libssl-dev libcurl4-openssl-dev pkg-config libpth-dev \
+    curl libx11-devpython3-pip python3-setuptools python3-shapely
 
 RUN pip3 install -U shyaml
 RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org appsettings
-RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org Shapely
 RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org utm
 RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org pyproj #==2.2.0
 RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org scikit-image
 
 RUN curl --silent --location https://deb.nodesource.com/setup_14.x | bash -
-RUN apt-get install -y nodejs
+RUN apt install -y nodejs
 RUN npm install -g nodemon
 
 # Build Entwine
@@ -38,21 +33,19 @@ RUN cd /staging/entwine && \
 	-DWITH_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=Release \
 	../ && \
-	make -j2 && make install
+	make -j$(cat /proc/cpuinfo | grep processor | wc -l) && make install
 
 
 RUN mkdir /var/www
-
 WORKDIR "/var/www"
-
 COPY . /var/www
 
 RUN npm install
-RUN mkdir -p tmp
+RUN mkdir -p tmp /code
 RUN mkdir -p /code
 
+# Build MicMac
 RUN git clone --depth 1  https://github.com/OpenDroneMap/micmac
-
 RUN cd micmac && \ 
     rm -rf build && mkdir build && cd build && \
     cmake \
