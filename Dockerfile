@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:21.04
 
 EXPOSE 3000
 
