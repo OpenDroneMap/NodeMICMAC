@@ -70,16 +70,17 @@ else
 	echo "gdal_translate is not installed, will skip MBTiles generation"
 fi
 
-# Generate point cloud (if entwine or potreeconverter is available)
+#Generate laz point cloud
+pointcloud_input="odm_georeferencing/odm_georeferenced_model.ply"
+pointcloud_output="odm_georeferencing/odm_georeferenced_model.laz"
+pdal translate -i "$pointcloud_input"  "$pointcloud_output"
+
+# Generate point cloud (if entwine is available)
 pointcloud_input_path=""
 for path in "odm_georeferencing/odm_georeferenced_model.laz" \
             "odm_georeferencing/odm_georeferenced_model.las" \
 	    "odm_georeferencing/odm_georeferenced_model.ply" \
-            "odm_filterpoints/point_cloud.ply" \
-            "opensfm/depthmaps/merged.ply" \
-            "smvs/smvs_dense_point_cloud.ply" \
-            "mve/mve_dense_point_cloud.ply" \
-            "pmvs/recon0/models/option-0000.ply"; do
+            "odm_filterpoints/point_cloud.ply"; do
     if [ -e $path ]; then
         echo "Found point cloud: $path"
         pointcloud_input_path=$path
@@ -106,8 +107,12 @@ if [ ! -z "$pointcloud_input_path" ]; then
         if [ -e "entwine_pointcloud" ]; then
             rm -fr "entwine_pointcloud"
         fi
-        
-        entwine build --threads $(nproc) --tmp "entwine_pointcloud-tmp" -i "$pointcloud_input_path" -o entwine_pointcloud
+	
+        #extract srs and add as option to entwine
+	
+	srs=`grep -oPm1 "(?<=<AuxStr>)[^<]+" < images/SysUTM.xml`
+	
+        entwine build --srs "$srs" --threads $(nproc) --tmp "entwine_pointcloud-tmp" -i "$pointcloud_input_path" -o entwine_pointcloud
         
         # Cleanup
         if [ -e "entwine_pointcloud-tmp" ]; then
