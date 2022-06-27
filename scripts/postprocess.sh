@@ -107,8 +107,12 @@ if [ ! -z "$pointcloud_input_path" ]; then
         if [ -e "entwine_pointcloud" ]; then
             rm -fr "entwine_pointcloud"
         fi
-        
-        entwine build --threads $(nproc) --tmp "entwine_pointcloud-tmp" -i "$pointcloud_input_path" -o entwine_pointcloud
+	
+        #extract srs and add as option to entwine
+	
+	srs=`grep -oPm1 "(?<=<AuxStr>)[^<]+" < images/SysUTM.xml`
+	
+        entwine build --srs "$srs" --threads $(nproc) --tmp "entwine_pointcloud-tmp" -i "$pointcloud_input_path" -o entwine_pointcloud
         
         # Cleanup
         if [ -e "entwine_pointcloud-tmp" ]; then
