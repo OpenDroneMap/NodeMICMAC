@@ -1,10 +1,13 @@
-FROM ubuntu:22.04
+FROM ubuntu:21.04
 
 EXPOSE 3000
 
 ENV DEBIAN_FRONTEND noninteractive
 
 USER root
+
+# Use old-releases for 21.04
+RUN printf "deb http://old-releases.ubuntu.com/ubuntu/ hirsute main restricted\ndeb http://old-releases.ubuntu.com/ubuntu/ hirsute-updates main restricted\ndeb http://old-releases.ubuntu.com/ubuntu/ hirsute universe\ndeb http://old-releases.ubuntu.com/ubuntu/ hirsute-updates universe\ndeb http://old-releases.ubuntu.com/ubuntu/ hirsute multiverse\ndeb http://old-releases.ubuntu.com/ubuntu/ hirsute-updates multiverse\ndeb http://old-releases.ubuntu.com/ubuntu/ hirsute-backports main restricted universe multiverse" > /etc/apt/sources.list
 
 RUN apt-get update
 RUN apt-get install -y -qq --no-install-recommends software-properties-common build-essential cmake git \
