@@ -6,8 +6,8 @@ ENV DEBIAN_FRONTEND noninteractive
 
 USER root
 
-RUN apt update
-RUN apt install -y -qq --no-install-recommends software-properties-common build-essential cmake git \
+RUN apt-get update
+RUN apt-get install -y -qq --no-install-recommends software-properties-common build-essential cmake git \
     exiv2 libimage-exiftool-perl proj-bin gdal-bin figlet imagemagick pdal libpdal-dev \
     libboost-all-dev libtbb-dev libssl-dev libcurl4-openssl-dev pkg-config libpth-dev \
     curl libx11-dev python3-pip python3-setuptools python3-shapely
@@ -19,7 +19,7 @@ RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --truste
 RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org scikit-image
 
 RUN curl --silent --location https://deb.nodesource.com/setup_14.x | bash -
-RUN apt install -y nodejs
+RUN apt-get install -y nodejs
 RUN npm install -g nodemon
 
 # Build Entwine
