@@ -76,12 +76,12 @@ We recommend that you setup NodeMICMAC using [Docker](https://www.docker.com/).
 
 * Docker image build:
 ```
-docker build -t opendronemap/node-micmac .
+docker build -t opendronemap/nodemicmac .
 ```
 
 * From the Docker Quickstart Terminal (Windows / OSX) or from the command line (Linux) type:
 ```
-docker run -p 3000:3000 opendronemap/node-micmac
+docker run -p 3000:3000 opendronemap/nodemicmac
 ```
 
 * If you're on Windows/OSX, find the IP of your Docker machine by running this command from your Docker Quickstart Terminal:
@@ -243,7 +243,7 @@ You can use [CloudODM](https://github.com/OpenDroneMap/CloudODM) to run tasks wi
 If you want to store results on a separate drive, map the `/var/www/data` folder to the location of your drive:
 
 ```bash
-docker run -p 3000:3000 -v /mnt/external_hd:/var/www/data opendronemap/node-micmac
+docker run -p 3000:3000 -v /mnt/external_hd:/var/www/data opendronemap/nodemicmac
 ```
 
 This can be also used to access the computation results directly from the file system.
