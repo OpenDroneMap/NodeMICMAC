@@ -1,5 +1,5 @@
 {
-	"instance": "node-MicMac-DroneMapper",
+	"instance": "node-MicMac",
 	"odm_path": "/code",
 
 	"logger": {
@@ -9,7 +9,7 @@
 		"logDirectory": ""
 	},
 
-	"port": 3000,
+	"port": "auto",
 	"deamon": false,
 	"parallelQueueProcessing": 2,
 	"cleanupTasksAfter": 2880,
@@ -17,5 +17,6 @@
 	"testSkipOrthophotos": false,
 	"testSkipDems": false,
 	"token": "",
+	"authorizedIps": [],
 	"maxImages": ""
 }
