@@ -262,7 +262,7 @@ apptainer run --bind $PWD:/var/www nodemicmac.sif
 ## Using def file:
 ```bash
 apptainer -v build --notest nodemicmac.sif apptainer.def
-appatainer run --bind $PWD:/var/www nodemicmac.sif
+apptainer run --bind $PWD:/var/www nodemicmac.sif
 ```
 
 
