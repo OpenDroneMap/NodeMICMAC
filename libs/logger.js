@@ -1,9 +1,9 @@
 /* 
-Node-OpenDroneMap Node.js App and REST API to access OpenDroneMap. 
-Copyright (C) 2016 Node-OpenDroneMap Contributors
+NodeODM App and REST API to access ODM. 
+Copyright (C) 2016 NodeODM Contributors
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Affero General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
@@ -12,7 +12,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 "use strict";
@@ -45,17 +45,12 @@ if (!config.deamon){
 
 let logger = winston.createLogger({ transports });
 logger.add(new winston.transports.File({
-        format: winston.format.simple(),
+        format: winston.format.simple(), 
         filename: logPath, // Write to projectname.log
         json: false, // Write in plain text, not JSON
         maxsize: config.logger.maxFileSize, // Max size of each file
         maxFiles: config.logger.maxFiles, // Max number of files
         level: config.logger.level // Level of log messages
     }));
-
-if (config.deamon){
-    // Console transport is no use to us when running as a daemon
-    logger.remove(winston.transports.Console);
-}
 
 module.exports = logger;

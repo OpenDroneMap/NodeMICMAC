@@ -248,6 +248,24 @@ docker run -p 3000:3000 -v /mnt/external_hd:/var/www/data opendronemap/nodemicma
 
 This can be also used to access the computation results directly from the file system.
 
+
+## Run it using Apptainer (or commercial version: Singularity) on HPC, Server or Workstation
+
+### Using Docker image:
+
+```bash
+# Replace `apptainer` by `singularity` if you don't use appatainer
+apptainer pull --name nodemicmac.sif docker://opendronemap/nodemicmac:master
+apptainer run --bind $PWD:/var/www nodemicmac.sif
+```
+
+### Using def file:
+```bash
+apptainer -v build --notest nodemicmac.sif apptainer.def
+apptainer run --bind $PWD:/var/www nodemicmac.sif
+```
+
+
 ### Run it Natively
 
 If you are already running [ODM](https://github.com/OpenDroneMap/ODM) on Ubuntu natively you can follow these steps:
@@ -277,11 +295,11 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Release -DLASZIP_INCLUDE_DIRS=/staging/LAStools/LASzip/dll -DLASZIP_LIBRARY=/staging/LAStools/LASzip/build/src/liblaszip.a ..
 make && sudo make install
 ```
-2] Install gdal2tiles.py script, node.js and npm dependencies
+2] Install gdal2tiles.py script, node.js, npm dependencies and 7zip:
 
 ```bash
 sudo curl --silent --location https://deb.nodesource.com/setup_6.x | sudo bash -
-sudo apt-get install -y nodejs python-gdal
+sudo apt-get install -y nodejs python-gdal p7zip-full
 git clone hhttps://github.com/OpenDroneMap/NodeMICMAC.git
 cd NodeMICMAC
 npm install

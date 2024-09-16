@@ -1,9 +1,9 @@
 /*
-Node-OpenDroneMap Node.js App and REST API to access OpenDroneMap.
-Copyright (C) 2016 Node-OpenDroneMap Contributors
+NodeODM App and REST API to access ODM.
+Copyright (C) 2016 NodeODM Contributors
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Affero General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
@@ -12,7 +12,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 "use strict";
@@ -59,6 +59,13 @@ class TaskManager{
                     this.dumpTaskList();
                     this.removeStaleUploads();
                 });
+                
+                if (config.maxRuntime > 0){
+                    // Every minute
+                    schedule.scheduleJob('* * * * *', () => {
+                        this.checkTimeouts();
+                    });
+                }
 
                 cb();
             }
@@ -151,7 +158,8 @@ class TaskManager{
                 try{
                     tasks = JSON.parse(data.toString());
                 }catch(e){
-                    done(new Error(`Could not load task list. It looks like the ${TASKS_DUMP_FILE} is corrupted (${e.message}). Please manually delete the file and try again.`));
+                    logger.warn(`Could not load task list. It looks like the ${TASKS_DUMP_FILE} is corrupted (${e.message}).`);
+                    if (done !== undefined) done();
                     return;
                 }
 
@@ -177,7 +185,7 @@ class TaskManager{
     // Finds the first QUEUED task.
     findNextTaskToProcess(){
         for (let uuid in this.tasks){
-            if (this.tasks[uuid].getStatus() === statusCodes.QUEUED){
+            if (this.tasks[uuid].getStatus() === statusCodes.QUEUED && this.tasks[uuid].initialized){
                 return this.tasks[uuid];
             }
         }
@@ -305,6 +313,23 @@ class TaskManager{
             }
         }
         return count;
+    }
+
+    checkTimeouts(){
+        if (config.maxRuntime > 0){
+            let now = new Date().getTime();
+
+            for (let uuid in this.tasks){
+                let task = this.tasks[uuid];
+                
+                if (task.isRunning() && task.dateStarted > 0 && (now - task.dateStarted) > config.maxRuntime * 60 * 1000){
+                    task.output.push(`Task timed out after ${Math.ceil(task.processingTime / 60 / 1000)} minutes.\n`);
+                    this.cancel(uuid, () => {
+                        logger.warn(`Task ${uuid} timed out`);
+                    });
+                }
+            }
+        }
     }
 }
 

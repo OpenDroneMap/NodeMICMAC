@@ -19,44 +19,70 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 const config = require('../config');
 const async = require('async');
+const os = require('os');
 const assert = require('assert');
 const logger = require('./logger');
 const fs = require('fs');
-const glob = require("glob");
 const path = require('path');
 const rmdir = require('rimraf');
 const odmRunner = require('./odmRunner');
 const odmInfo = require('./odmInfo');
 const processRunner = require('./processRunner');
-const archiver = require('archiver');
 const Directories = require('./Directories');
 const kill = require('tree-kill');
 const S3 = require('./S3');
 const request = require('request');
 const utils = require('./utils');
+const archiver = require('archiver');
 
 const statusCodes = require('./statusCodes');
 
 module.exports = class Task{
-    constructor(uuid, name, options = [], webhook = null, skipPostProcessing = false, outputs = [], dateCreated = new Date().getTime(), done = () => {}){
+    constructor(uuid, name, options = [], webhook = null, skipPostProcessing = false, outputs = [], dateCreated = new Date().getTime(), imagesCountEstimate = -1){
         assert(uuid !== undefined, "uuid must be set");
-        assert(done !== undefined, "ready must be set");
 
         this.uuid = uuid;
         this.name = name !== "" ? name : "Task of " + (new Date()).toISOString();
         this.dateCreated = isNaN(parseInt(dateCreated)) ? new Date().getTime() : parseInt(dateCreated);
+        this.dateStarted = 0;
         this.processingTime = -1;
         this.setStatus(statusCodes.QUEUED);
         this.options = options;
         this.gcpFiles = [];
+        this.geoFiles = [];
+        this.imageGroupsFiles = [];
         this.output = [];
         this.runningProcesses = [];
         this.webhook = webhook;
         this.skipPostProcessing = skipPostProcessing;
         this.outputs = utils.parseUnsafePathsList(outputs);
         this.progress = 0;
-        
-        async.series([
+        this.imagesCountEstimate = imagesCountEstimate;
+        this.initialized = false;
+    }
+
+    initialize(done, additionalSteps = []){
+        async.series(additionalSteps.concat([
+            // Handle post-processing options logic
+            cb => {
+                // If we need to post process results
+                // if pc-ept is supported (build entwine point cloud)
+                // we automatically add the pc-ept option to the task options by default
+                if (this.skipPostProcessing) cb();
+                else{
+                    odmInfo.supportsOption("pc-ept", (err, supported) => {
+                        if (err){
+                            console.warn(`Cannot check for supported option pc-ept: ${err}`);
+                        }else if (supported){
+                            if (!this.options.find(opt => opt.name === "pc-ept")){
+                                this.options.push({ name: 'pc-ept', value: true });
+                            }
+                        }
+                        cb();
+                    });
+                }
+            },
+
             // Read images info
             cb => {
                 fs.readdir(this.getImagesFolderPath(), (err, files) => {
@@ -75,44 +101,52 @@ module.exports = class Task{
                     if (err) cb(err);
                     else{
                         files.forEach(file => {
-                            if (/\.txt$/gi.test(file)){
+                            if (/^geo\.txt$/gi.test(file)){
+                                this.geoFiles.push(file);
+                            }else if (/^image_groups\.txt$/gi.test(file)){
+                                this.imageGroupsFiles.push(file);
+                            }else if (/\.txt$/gi.test(file)){
                                 this.gcpFiles.push(file);
                             }
                         });
                         logger.debug(`Found ${this.gcpFiles.length} GCP files (${this.gcpFiles.join(" ")}) for ${this.uuid}`);
+                        logger.debug(`Found ${this.geoFiles.length} GEO files (${this.geoFiles.join(" ")}) for ${this.uuid}`);
+                        logger.debug(`Found ${this.imageGroupsFiles.length} image groups files (${this.imageGroupsFiles.join(" ")}) for ${this.uuid}`);
                         cb(null);
                     }
                 });
             }
-        ], err => {
+        ]), err => {
+            this.initialized = true;
             done(err, this);
         });
     }
 
     static CreateFromSerialized(taskJson, done){
-        new Task(taskJson.uuid, 
+        const task = new Task(taskJson.uuid, 
             taskJson.name, 
-            taskJson.options, 
+            taskJson.options,
             taskJson.webhook, 
             taskJson.skipPostProcessing,
             taskJson.outputs,
-            taskJson.dateCreated,
-            (err, task) => {
-                if (err) done(err);
-                else{
-                    // Override default values with those
-                    // provided in the taskJson
-                    for (let k in taskJson){
-                        task[k] = taskJson[k];
-                    }
-    
-                    // Tasks that were running should be put back to QUEUED state
-                    if (task.status.code === statusCodes.RUNNING){
-                        task.status.code = statusCodes.QUEUED;
-                    }
-                    done(null, task);
+            taskJson.dateCreated);
+
+        task.initialize((err, task) => {
+            if (err) done(err);
+            else{
+                // Override default values with those
+                // provided in the taskJson
+                for (let k in taskJson){
+                    task[k] = taskJson[k];
                 }
-            });
+
+                // Tasks that were running should be put back to QUEUED state
+                if (task.status.code === statusCodes.RUNNING){
+                    task.status.code = statusCodes.QUEUED;
+                }
+                done(null, task);
+            }
+        });
     }
 
     // Get path where images are stored for this task
@@ -138,13 +172,6 @@ module.exports = class Task{
     getAssetsArchivePath(filename){
         if (filename == 'all.zip'){
             // OK, do nothing
-        }else if (filename == 'orthophoto.tif'){
-            if (config.test){
-                if (config.testSkipOrthophotos) return false;
-                else filename = path.join('..', '..', 'processing_results', 'odm_orthophoto', `odm_${filename}`);
-            }else{
-                filename = path.join('odm_orthophoto', `odm_${filename}`);
-            }
         }else{
             return false; // Invalid
         }
@@ -208,6 +235,10 @@ module.exports = class Task{
         return this.status.code === statusCodes.CANCELED;
     }
 
+    isRunning(){
+        return this.status.code === statusCodes.RUNNING;
+    }
+
     // Cancels the current task (unless it's already canceled)
     cancel(cb){
         if (this.status.code !== statusCodes.CANCELED){
@@ -245,6 +276,40 @@ module.exports = class Task{
         
         const postProcess = () => {
             const createZipArchive = (outputFilename, files) => {
+                return (done) => {
+                    this.output.push(`Compressing ${outputFilename}\n`);
+
+                    const zipFile = path.resolve(this.getAssetsArchivePath(outputFilename));
+                    const sourcePath = !config.test ? 
+                                        this.getProjectFolderPath() : 
+                                        path.join("tests", "processing_results");
+
+                    const pathsToArchive = [];
+                    files.forEach(f => {
+                        if (fs.existsSync(path.join(sourcePath, f))){
+                            pathsToArchive.push(f);
+                        }
+                    });
+
+                    processRunner.sevenZip({
+                        destination: zipFile,
+                        pathsToArchive,
+                        cwd: sourcePath
+                    }, (err, code, _) => {
+                        if (err){
+                            logger.error(`Could not archive .zip file: ${err.message}`);
+                            done(err);
+                        }else{
+                            if (code === 0){
+                                this.updateProgress(97);
+                                done();
+                            }else done(new Error(`Could not archive .zip file, 7z exited with code ${code}`));
+                        }
+                    });
+                };
+            };
+
+            const createZipArchiveLegacy = (outputFilename, files) => {
                 return (done) => {
                     this.output.push(`Compressing ${outputFilename}\n`);
 
@@ -323,13 +388,13 @@ module.exports = class Task{
                     this.runningProcesses.push(
                         processRunner.runPostProcessingScript({
                             projectFolderPath: this.getProjectFolderPath() 
-                        }, (err, code, signal) => {
+                        }, (err, code, _) => {
                             if (err) done(err);
                             else{
                                 if (code === 0){
                                     this.updateProgress(93);
                                     done();
-                                }else done(new Error(`Process exited with code ${code}`));
+                                }else done(new Error(`Postprocessing failed (${code})`));
                             }
                         }, output => {
                             this.output.push(output);
@@ -338,11 +403,29 @@ module.exports = class Task{
                 };
             };
 
+            const saveTaskOutput = (destination) => {
+                return (done) => {
+                    fs.writeFile(destination, this.output.join("\n"), err => {
+                        if (err) logger.info(`Cannot write log at ${destination}, skipping...`);
+                        done();
+                    });
+                };
+            }
+
             // All paths are relative to the project directory (./data/<uuid>/)
             let allPaths = ['odm_orthophoto/odm_orthophoto.tif', 'odm_orthophoto/odm_orthophoto.mbtiles',
                               'odm_georeferencing', 'odm_texturing',
                               'odm_dem/dsm.tif', 'odm_dem/dtm.tif', 'dsm_tiles', 'dtm_tiles',
-                              'orthophoto_tiles', 'potree_pointcloud', 'entwine_pointcloud', 'images.json'];
+                              'orthophoto_tiles', 'potree_pointcloud', 'entwine_pointcloud', 'task_output.txt', 'log.json'];
+//            let allPaths = ['odm_orthophoto/odm_orthophoto.tif', 
+//                              'odm_orthophoto/odm_orthophoto.png',
+//                              'odm_orthophoto/odm_orthophoto.mbtiles',
+//                              'odm_georeferencing', 'odm_texturing',
+//                              'odm_dem/dsm.tif', 'odm_dem/dtm.tif', 'dsm_tiles', 'dtm_tiles',
+//                              'orthophoto_tiles', 'potree_pointcloud', 'entwine_pointcloud', 
+//                              'images.json', 'cameras.json',
+//                              'task_output.txt',
+//                              'odm_report'];
             
             // Did the user request different outputs than the default?
             if (this.outputs.length > 0) allPaths = this.outputs;
@@ -380,19 +463,30 @@ module.exports = class Task{
 
             }
             
-            if (!this.skipPostProcessing) tasks.push(runPostProcessingScript());
-            tasks.push(createZipArchive('all.zip', allPaths));
+            // postprocess.sh is still here for legacy/backward compatibility
+            // purposes, but we might remove it in the future. The new logic
+            // instructs the processing engine to do the necessary processing
+            // of outputs without post processing steps (build EPT).
+            // We're leaving it here only for Linux/docker setups, but will not
+            // be triggered on Windows.
+            if (os.platform() !== "win32" && !this.skipPostProcessing){
+                tasks.push(runPostProcessingScript());
+            }
+            
+            const taskOutputFile = path.join(this.getProjectFolderPath(), 'task_output.txt');
+            tasks.push(saveTaskOutput(taskOutputFile));
+
+            const archiveFunc = config.has7z ? createZipArchive : createZipArchiveLegacy;
+            tasks.push(archiveFunc('all.zip', allPaths));
             
             // Upload to S3 all paths + all.zip file (if config says so)
             if (S3.enabled()){
                 tasks.push((done) => {
                     let s3Paths;
-                    if (config.test){
-                        s3Paths = ['all.zip']; // During testing only upload all.zip
-                    }else if (config.s3UploadEverything){
+                    if (config.s3UploadEverything){
                         s3Paths = ['all.zip'].concat(allPaths);
                     }else{
-                        s3Paths = ['all.zip', 'odm_orthophoto/odm_orthophoto.tif'];
+                        s3Paths = ['all.zip'];
                     }
                     
                     S3.uploadPaths(this.getProjectFolderPath(), config.s3Bucket, this.uuid, s3Paths, 
@@ -416,6 +510,7 @@ module.exports = class Task{
 
         if (this.status.code === statusCodes.QUEUED){
             this.startTrackingProcessingTime();
+            this.dateStarted = new Date().getTime();
             this.setStatus(statusCodes.RUNNING);
 
             let runnerOptions = this.options.reduce((result, opt) => {
@@ -428,6 +523,12 @@ module.exports = class Task{
             if (this.gcpFiles.length > 0){
                 runnerOptions.gcp = fs.realpathSync(path.join(this.getGcpFolderPath(), this.gcpFiles[0]));
             }
+            if (this.geoFiles.length > 0){
+                runnerOptions.geo = fs.realpathSync(path.join(this.getGcpFolderPath(), this.geoFiles[0]));
+            }
+            if (this.imageGroupsFiles.length > 0){
+                runnerOptions["split-image-groups"] = fs.realpathSync(path.join(this.getGcpFolderPath(), this.imageGroupsFiles[0]));
+            }
 
             this.runningProcesses.push(odmRunner.run(runnerOptions, this.uuid, (err, code, signal) => {
                     if (err){
@@ -439,7 +540,27 @@ module.exports = class Task{
                             if (code === 0){
                                 postProcess();
                             }else{
-                                this.setStatus(statusCodes.FAILED, {errorMessage: `Process exited with code ${code}`});
+                                let errorMessage = "";
+                                switch(code){
+                                    case 1:
+                                    case 139:
+                                    case 134:
+                                        errorMessage = `Cannot process dataset`;
+                                        break;
+                                    case 137:
+                                        errorMessage = `Not enough memory`;
+                                        break;
+                                    case 132:
+                                        errorMessage = `Unsupported CPU`;
+                                        break;
+                                    case 3:
+                                        errorMessage = `Installation issue`;
+                                        break;
+                                    default:
+                                        errorMessage = `Processing failed (${code})`;
+                                        break;
+                                }
+                                this.setStatus(statusCodes.FAILED, { errorMessage });
                                 finished();
                             }
                         }else{
@@ -466,10 +587,12 @@ module.exports = class Task{
     // Re-executes the task (by setting it's state back to QUEUED)
     // Only tasks that have been canceled, completed or have failed can be restarted.
     restart(options, cb){
-        if ([statusCodes.CANCELED, statusCodes.FAILED, statusCodes.COMPLETED].indexOf(this.status.code) !== -1){
+        if ([statusCodes.CANCELED, statusCodes.FAILED, statusCodes.COMPLETED].indexOf(this.status.code) !== -1 && this.initialized){
             this.setStatus(statusCodes.QUEUED);
             this.dateCreated = new Date().getTime();
+            this.dateStarted = 0;
             this.output = [];
+            this.progress = 0;
             this.stopTrackingProcessingTime(true);
             if (options !== undefined) this.options = options;
             cb(null);
@@ -487,7 +610,7 @@ module.exports = class Task{
             processingTime: this.processingTime,
             status: this.status,
             options: this.options,
-            imagesCount: this.images.length,
+            imagesCount: this.images !== undefined ? this.images.length : this.imagesCountEstimate,
             progress: this.progress
         };
     }
@@ -501,28 +624,21 @@ module.exports = class Task{
     // Reads the contents of the tasks's 
     // images.json and returns its JSON representation
     readImagesDatabase(callback){
-        const imagesDbPath = !config.test ?
+        const imagesDbPath = !config.test ? 
                              path.join(this.getProjectFolderPath(), 'images.json') :
                              path.join('tests', 'processing_results', 'images.json');
-
-        try {
-            if (fs.existsSync(imagesDbPath)) {
-                fs.readFile(imagesDbPath, 'utf8', (err, data) => {
-                    if (err) callback(err);
-                    else{
-                        try{
-                            const json = JSON.parse(data);
-                            callback(null, json);
-                        }catch(e){
-                            callback(e);
-                        }
-                    }
-                });
+    
+        fs.readFile(imagesDbPath, 'utf8', (err, data) => {
+            if (err) callback(err);
+            else{
+                try{
+                    const json = JSON.parse(data);
+                    callback(null, json);
+                }catch(e){
+                    callback(e);
+                }
             }
-        } catch(err) {
-            logger.info('images.json doesn\'t exist:' + err);
-            callback(null, JSON.parse('{}'));
-        }
+        });
     }
 
     callWebhooks(){
@@ -569,6 +685,7 @@ module.exports = class Task{
             uuid: this.uuid,
             name: this.name,
             dateCreated: this.dateCreated,
+            dateStarted: this.dateStarted,
             status: this.status,
             options: this.options,
             webhook: this.webhook,
