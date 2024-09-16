@@ -1,9 +1,9 @@
 /*
-Node-OpenDroneMap Node.js App and REST API to access OpenDroneMap.
-Copyright (C) 2016 Node-OpenDroneMap Contributors
+NodeODM App and REST API to access ODM.
+Copyright (C) 2016 NodeODM Contributors
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Affero General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
@@ -12,7 +12,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -24,13 +24,14 @@ const uuidv4 = require('uuid/v4');
 const config = require('../config.js');
 const rmdir = require('rimraf');
 const Directories = require('./Directories');
-const unzip = require('node-unzip-2');
 const mv = require('mv');
 const Task = require('./Task');
 const async = require('async');
 const odmInfo = require('./odmInfo');
 const request = require('request');
-const utils = require('./utils');
+const ziputils = require('./ziputils');
+const statusCodes = require('./statusCodes');
+const logger = require('./logger');
 
 const download = function(uri, filename, callback) {
     request.head(uri, function(err, res, body) {
@@ -45,6 +46,24 @@ const removeDirectory = function(dir, cb = () => {}){
     fs.stat(dir, (err, stats) => {
         if (!err && stats.isDirectory()) rmdir(dir, cb); // ignore errors, don't wait
         else cb(err);
+    });
+};
+
+const assureUniqueFilename = (dstPath, filename, cb) => {
+    const dstFile = path.join(dstPath, filename);
+    fs.exists(dstFile, exists => {
+        if (!exists) cb(null, filename);
+        else{
+            const parts = filename.split(".");
+            if (parts.length > 1){
+                assureUniqueFilename(dstPath, 
+                    `${parts.slice(0, parts.length - 1).join(".")}_.${parts[parts.length - 1]}`, 
+                    cb);
+            }else{
+                // Filename without extension? Strange..
+                assureUniqueFilename(dstPath, filename + "_", cb);
+            }
+        }
     });
 };
 
@@ -63,9 +82,11 @@ const upload = multer({
             });
         },
         filename: (req, file, cb) => {
-            let filename = utils.sanitize(file.originalname);
+            let filename = file.originalname;
             if (filename === "body.json") filename = "_body.json";
-            cb(null, filename);
+
+            let dstPath = path.join("tmp", req.id);
+            assureUniqueFilename(dstPath, filename, cb);
         }
     })
 });
@@ -78,7 +99,7 @@ module.exports = {
             const userUuid = req.get('set-uuid');
     
             // Valid UUID and no other task with same UUID?
-            if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userUuid) && !TaskManager.singleton().find(userUuid)){
+            if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-7][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userUuid) && !TaskManager.singleton().find(userUuid)){
                 req.id = userUuid;
                 next();
             }else{
@@ -123,7 +144,7 @@ module.exports = {
         if (req.files && req.files.length > 0){
             res.json({success: true});
         }else{
-            res.json({error: "Need at least 1 file."});
+            res.json({error: "Need at least 1 file.", noRetry: true});
         }
     },
 
@@ -143,7 +164,7 @@ module.exports = {
                                 else cb(null, body);
                             });
                         }catch(e){
-                            cb("Malformed body.json");
+                            cb(new Error("Malformed body.json"));
                         }
                     }
                 });
@@ -187,11 +208,10 @@ module.exports = {
             },
             cb => {
                 fs.stat(srcPath, (err, stat) => {
-                    if (err && err.code === 'ENOENT') cb();
-                    else cb(new Error(`Directory exists (should not have happened: ${err.code})`));
+                    if (err && err.code === 'ENOENT') fs.mkdir(srcPath, undefined, cb);
+                    else cb(); // Dir already exists
                 });
             },
-            cb => fs.mkdir(srcPath, undefined, cb),
             cb => {
                 fs.writeFile(bodyFile, JSON.stringify(req.body), {encoding: 'utf8'}, cb);
             },
@@ -205,10 +225,6 @@ module.exports = {
     },
 
     createTask: (req, res) => {
-        // IMPROVEMENT: consider doing the file moving in the background
-        // and return a response more quickly instead of a long timeout.
-        req.setTimeout(1000 * 60 * 20);
-
         const srcPath = path.join("tmp", req.id);
 
         // Print error message and cleanup
@@ -216,15 +232,170 @@ module.exports = {
             res.json({error});
             removeDirectory(srcPath);
         };
+        
+        let destPath = path.join(Directories.data, req.id);
+        let destImagesPath = path.join(destPath, "images");
+        let destGcpPath = path.join(destPath, "gcp");
+
+        const checkMaxImageLimits = (cb) => {
+            if (!config.maxImages) cb();
+            else{
+                fs.readdir(destImagesPath, (err, files) => {
+                    if (err) cb(err);
+                    else if (files.length > config.maxImages) cb(new Error(`${files.length} images uploaded, but this node can only process up to ${config.maxImages}.`));
+                    else cb();
+                });
+            }
+        };
+
+        let initSteps = [
+            // Check if dest directory already exists
+            cb => {
+                if (req.files && req.files.length > 0) {
+                    fs.stat(destPath, (err, stat) => {
+                        if (err && err.code === 'ENOENT') cb();
+                        else{
+                            // Directory already exists, this could happen
+                            // if a previous attempt at upload failed and the user
+                            // used set-uuid to specify the same UUID over the previous run
+                            // Try to remove it
+                            removeDirectory(destPath, err => {
+                                if (err) cb(new Error(`Directory exists and we couldn't remove it.`));
+                                else cb();
+                            });
+                        } 
+                    });
+                } else {
+                    cb();
+                }
+            },
+
+            // Unzips zip URL to tmp/<uuid>/ (if any)
+            cb => {
+                if (req.body.zipurl) {
+                    let archive = "zipurl.zip";
+
+                    upload.storage.getDestination(req, archive, (err, dstPath) => {
+                        if (err) cb(err);
+                        else{
+                            let archiveDestPath = path.join(dstPath, archive);
+
+                            download(req.body.zipurl, archiveDestPath, cb);
+                        }
+                    });
+                } else {
+                    cb();
+                }
+            },
+            
+            // Move all uploads to data/<uuid>/images dir (if any)
+            cb => fs.mkdir(destPath, undefined, cb),
+            cb => fs.mkdir(destGcpPath, undefined, cb),
+            cb => {
+                // We attempt to do this multiple times,
+                // as antivirus software sometimes is scanning
+                // the folder while we try to move it, resulting in
+                // an operation not permitted error
+                let retries = 0;
+
+                const move = () => {
+                    mv(srcPath, destImagesPath, err => {
+                        if (!err) cb(); // Done
+                        else{
+                            if (++retries < 20){
+                                logger.warn(`Cannot move ${srcPath}, probably caused by antivirus software (please disable it or add an exception), retrying (${retries})...`);
+                                setTimeout(move, 2000);
+                            } else {
+                                logger.error(`Unable to move temp images (${srcPath}) after 20 retries. Error: ${err}`);
+                                cb(err);
+                            }
+                        }
+                    });
+                }
+                move();
+            },
+            // Zip files handling
+            cb => {
+                const handleSeed = (cb) => {
+                    const seedFileDst = path.join(destPath, "seed.zip");
+
+                    async.series([
+                        // Move to project root
+                        cb => mv(path.join(destImagesPath, "seed.zip"), seedFileDst, cb),
+                        
+                        // Extract
+                        cb => {
+                            ziputils.unzip(seedFileDst, destPath, cb);
+                        },
+
+                        // Remove
+                        cb => {
+                            fs.exists(seedFileDst, exists => {
+                                if (exists) fs.unlink(seedFileDst, cb);
+                                else cb();
+                            });
+                        }
+                    ], cb);
+                }
+
+                const handleZipUrl = (cb) => {
+                    // Extract images
+                    ziputils.unzip(path.join(destImagesPath, "zipurl.zip"), 
+                                    destImagesPath, 
+                                    cb, true);
+                }
+
+                // Find and handle zip files and extract
+                fs.readdir(destImagesPath, (err, entries) => {
+                    if (err) cb(err);
+                    else {
+                        async.eachSeries(entries, (entry, cb) => {
+                            if (entry === "seed.zip"){
+                                handleSeed(cb);
+                            }else if (entry === "zipurl.zip") {
+                                handleZipUrl(cb);
+                            } else cb();
+                        }, cb);
+                    }
+                });
+            },
+
+            // Verify max images limit
+            cb => {
+                checkMaxImageLimits(cb);
+            },
+
+            cb => {
+                // Find any *.txt (GCP) file or alignment file and move it to the data/<uuid>/gcp directory
+                // also remove any lingering zipurl.zip
+                fs.readdir(destImagesPath, (err, entries) => {
+                    if (err) cb(err);
+                    else {
+                        async.eachSeries(entries, (entry, cb) => {
+                            if (/\.txt$/gi.test(entry) || /^align\.(las|laz|tif)$/gi.test(entry)) {
+                                mv(path.join(destImagesPath, entry), path.join(destGcpPath, entry), cb);
+                            }else if (/\.zip$/gi.test(entry)){
+                                fs.unlink(path.join(destImagesPath, entry), cb);
+                            } else cb();
+                        }, cb);
+                    }
+                });
+            }
+        ];
 
         if (req.error !== undefined){
             die(req.error);
         }else{
-            let destPath = path.join(Directories.data, req.id);
-            let destImagesPath = path.join(destPath, "images");
-            let destGcpPath = path.join(destPath, "gcp");
+            let imagesCountEstimate = -1;
 
             async.series([
+                cb => {
+                    // Basic path check
+                    fs.exists(srcPath, exists => {
+                        if (exists) cb();
+                        else cb(new Error(`Invalid UUID`));
+                    });
+                },
                 cb => {
                     odmInfo.filterOptions(req.body.options, (err, options) => {
                         if (err) cb(err);
@@ -234,134 +405,34 @@ module.exports = {
                         }
                     });
                 },
-
-                // Check if dest directory already exists
                 cb => {
-                    if (req.files && req.files.length > 0) {
-                        fs.stat(destPath, (err, stat) => {
-                            if (err && err.code === 'ENOENT') cb();
-                            else cb(new Error(`Directory exists (should not have happened: ${err.code})`));
-                        });
-                    } else {
+                    fs.readdir(srcPath, (err, entries) => {
+                        if (!err) imagesCountEstimate = entries.length;
                         cb();
-                    }
-                },
-
-                // Unzips zip URL to tmp/<uuid>/ (if any)
-                cb => {
-                    if (req.body.zipurl) {
-                        let archive = "zipurl.zip";
-
-                        upload.storage.getDestination(req, archive, (err, dstPath) => {
-                            if (err) cb(err);
-                            else{
-                                let archiveDestPath = path.join(dstPath, archive);
-
-                                download(req.body.zipurl, archiveDestPath, cb);
-                            }
-                        });
-                    } else {
-                        cb();
-                    }
-                },
-
-                // Move all uploads to data/<uuid>/images dir (if any)
-                cb => fs.mkdir(destPath, undefined, cb),
-                cb => fs.mkdir(destGcpPath, undefined, cb),
-                cb => mv(srcPath, destImagesPath, cb),
-                
-                // Zip files handling
-                cb => {
-                    const handleSeed = (cb) => {
-                        const seedFileDst = path.join(destPath, "seed.zip");
-
-                        async.series([
-                            // Move to project root
-                            cb => mv(path.join(destImagesPath, "seed.zip"), seedFileDst, cb),
-                            
-                            // Extract
-                            cb => {
-                                fs.createReadStream(seedFileDst).pipe(unzip.Extract({ path: destPath }))
-                                    .on('close', cb)
-                                    .on('error', cb);
-                            },
-
-                            // Verify max images limit
-                            cb => {
-                                fs.readdir(destImagesPath, (err, files) => {
-                                    if (config.maxImages && files.length > config.maxImages) cb(`${files.length} images uploaded, but this node can only process up to ${config.maxImages}.`);
-                                    else cb(err);
-                                });
-                            }
-                        ], cb);
-                    }
-
-                    const handleZipUrl = (cb) => {
-                        let filesCount = 0;
-                        fs.createReadStream(path.join(destImagesPath, "zipurl.zip")).pipe(unzip.Parse())
-                            .on('entry', function(entry) {
-                                if (entry.type === 'File') {
-                                    filesCount++;
-                                    entry.pipe(fs.createWriteStream(path.join(destImagesPath, path.basename(entry.path))));
-                                } else {
-                                    entry.autodrain();
-                                }
-                            })
-                            .on('close', () => {
-                                // Verify max images limit
-                                if (config.maxImages && filesCount > config.maxImages) cb(`${filesCount} images uploaded, but this node can only process up to ${config.maxImages}.`);
-                                else cb();
-                            })
-                            .on('error', cb);
-                    }
-
-                    // Find and handle zip files and extract
-                    fs.readdir(destImagesPath, (err, entries) => {
-                        if (err) cb(err);
-                        else {
-                            async.eachSeries(entries, (entry, cb) => {
-                                if (entry === "seed.zip"){
-                                    handleSeed(cb);
-                                }else if (entry === "zipurl.zip") {
-                                    handleZipUrl(cb);
-                                } else cb();
-                            }, cb);
-                        }
                     });
                 },
-
                 cb => {
-                    // Find any *.txt (GCP) file and move it to the data/<uuid>/gcp directory
-                    // also remove any lingering zipurl.zip
-                    fs.readdir(destImagesPath, (err, entries) => {
-                        if (err) cb(err);
-                        else {
-                            async.eachSeries(entries, (entry, cb) => {
-                                if (/\.txt$/gi.test(entry)) {
-                                    mv(path.join(destImagesPath, entry), path.join(destGcpPath, entry), cb);
-                                }else if (/\.zip$/gi.test(entry)){
-                                    fs.unlink(path.join(destImagesPath, entry), cb);
-                                } else cb();
-                            }, cb);
-                        }
-                    });
-                },
+                    const task = new Task(req.id, req.body.name, req.body.options,
+                            req.body.webhook,
+                            req.body.skipPostProcessing === 'true',
+                            req.body.outputs,
+                            req.body.dateCreated,
+                            imagesCountEstimate
+                        );
+                    TaskManager.singleton().addNew(task);
+                    res.json({ uuid: req.id });
+                    cb();
 
-                // Create task
-                cb => {
-                    new Task(req.id, req.body.name, req.body.options,
-                    req.body.webhook,
-                    req.body.skipPostProcessing === 'true',
-                    req.body.outputs,
-                    req.body.dateCreated,
-                    (err, task) => {
-                        if (err) cb(err);
-                        else {
-                            TaskManager.singleton().addNew(task);
-                            res.json({ uuid: req.id });
-                            cb();
-                        }
-                    });
+                    // We return a UUID right away but continue
+                    // doing processing in the background
+
+                    task.initialize(err => {
+                        if (err) {
+                            // Cleanup
+                            removeDirectory(srcPath);
+                            removeDirectory(destPath);
+                        } else TaskManager.singleton().processNextTask();
+                    }, initSteps);
                 }
             ], err => {
                 if (err) die(err.message);

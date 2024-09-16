@@ -13,7 +13,7 @@ RUN apt-get update
 RUN apt-get install -y -qq --no-install-recommends software-properties-common build-essential cmake git \
     exiv2 libimage-exiftool-perl proj-bin gdal-bin figlet imagemagick pdal libpdal-dev \
     libboost-all-dev libtbb-dev libssl-dev libcurl4-openssl-dev pkg-config libpth-dev \
-    curl libx11-dev python3-pip python3-setuptools python3-shapely apt-utils
+    curl libx11-dev python3-pip python3-setuptools python3-shapely apt-utils p7zip-full
 
 RUN pip3 install -U shyaml
 RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org appsettings
@@ -23,7 +23,7 @@ RUN pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --truste
 
 RUN curl --silent --location https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get install -y nodejs
-RUN npm install -g nodemon
+RUN npm install --production
 
 # Build Entwine
 WORKDIR "/staging"

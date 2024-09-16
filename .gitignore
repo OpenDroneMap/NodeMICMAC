@@ -51,3 +51,7 @@ micmac/build
 micmac/build/*
 
 *.pyc
+
+data
+node
+nodemicmac.sif

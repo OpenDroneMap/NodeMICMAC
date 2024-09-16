@@ -56,3 +56,4 @@ module.exports = {
         return path.join(os.tmpdir(), `nodeodm_${crypto.randomBytes(6).readUIntLE(0,6).toString(36)}${extension}`);
     }
 };
+

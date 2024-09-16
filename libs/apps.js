@@ -15,11 +15,20 @@ GNU General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-"use strict";
+const fs = require('fs');
+const path = require('path');
+
+let sevenZ = "7z";
+let unzip = "unzip";
+
+if (fs.existsSync(path.join("apps", "7z", "7z.exe"))){
+    sevenZ = path.resolve(path.join("apps", "7z", "7z.exe"));
+}
+
+if (fs.existsSync(path.join("apps", "unzip", "unzip.exe"))){
+    unzip = path.resolve(path.join("apps", "unzip", "unzip.exe"));
+}
+
 module.exports = {
-    QUEUED: 10,
-    RUNNING: 20,
-    FAILED: 30,
-    COMPLETED: 40,
-    CANCELED: 50
+    sevenZ, unzip
 };

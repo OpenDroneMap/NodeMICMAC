@@ -1,0 +1,18 @@
+Bootstrap: docker
+From: opendronemap/nodemicmac:master
+
+%labels
+    Author Sylvain POULAIN
+    Version 1.0
+    Description Apptainer container for NodeMICMAC and WebGIS with Entwine and MicMac.
+
+%environment
+    export PATH=$PATH:/code/micmac/bin
+    export python=$(which python3)
+
+%runscript
+    cd "/var/www"
+    exec /usr/bin/node /var/www/index.js "$@"
+%startscript
+    cd "/var/www"
+    exec /usr/bin/node /var/www/index.js "$@"
