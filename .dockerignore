@@ -1,6 +1,6 @@
 node_modules
 tests
 tmp
-data
+data/*
 nodemicmac.sif
 node
