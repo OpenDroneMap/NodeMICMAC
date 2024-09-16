@@ -249,9 +249,9 @@ docker run -p 3000:3000 -v /mnt/external_hd:/var/www/data opendronemap/nodemicma
 This can be also used to access the computation results directly from the file system.
 
 
-### Run it using Apptainer (or commercial version: Singularity) on HPC, Server or Workstation
+## Run it using Apptainer (or commercial version: Singularity) on HPC, Server or Workstation
 
-## Using Docker image:
+### Using Docker image:
 
 ```bash
 # Replace `apptainer` by `singularity` if you don't use appatainer
@@ -259,7 +259,7 @@ apptainer pull --name nodemicmac.sif docker://opendronemap/nodemicmac:master
 apptainer run --bind $PWD:/var/www nodemicmac.sif
 ```
 
-## Using def file:
+### Using def file:
 ```bash
 apptainer -v build --notest nodemicmac.sif apptainer.def
 apptainer run --bind $PWD:/var/www nodemicmac.sif
