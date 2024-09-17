@@ -1,4 +1,4 @@
 Shapely
 utm
-pyproj==2.2.0
+pyproj==3.6.1
 scikit-image
