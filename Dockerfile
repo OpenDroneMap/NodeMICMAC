@@ -48,8 +48,8 @@ RUN mkdir -p tmp /code
 RUN mkdir -p /code
 
 # Build MicMac
-RUN git clone --depth 1  https://github.com/OpenDroneMap/micmac
-RUN cd micmac && \ 
+RUN git clone --depth 1  https://github.com/OpenDroneMap/micmac micmac-build
+RUN cd micmac-build && \ 
     rm -rf build && mkdir build && cd build && \
     cmake \
     	-DBUILD_POISSON=0 \
@@ -79,7 +79,7 @@ COPY micmac/VERSION /code
 COPY micmac/run.sh /code
 COPY micmac/run.py /code
 
-RUN apt clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /staging /var/www/micmac
+RUN apt clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /staging /var/www/micmac-build
 
 WORKDIR "/var/www"
 
