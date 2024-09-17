@@ -72,12 +72,12 @@ ENV python "$(which python3)"
 RUN figlet -f slant NodeMICMAC
 
 RUN mkdir -p /code/opendm
-COPY dm/opendm /code/opendm
-COPY dm/odm_options.json /code
-COPY dm/settings.yaml /code
-COPY dm/VERSION /code
-COPY dm/run.sh /code
-COPY dm/run.py /code
+COPY micmac/opendm /code/opendm
+COPY micmac/odm_options.json /code
+COPY micmac/settings.yaml /code
+COPY micmac/VERSION /code
+COPY micmac/run.sh /code
+COPY micmac/run.py /code
 
 RUN apt clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /staging /var/www/micmac
 
