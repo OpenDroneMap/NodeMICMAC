@@ -10,6 +10,14 @@ From: opendronemap/nodemicmac:master
     export PATH=$PATH:/code/micmac/bin
     export python=$(which python3)
 
+%post
+   
+    mkdir -p /var/www
+
+    mkdir -p "/var/www"
+    cd "/var/www"
+    mkdir -p tmp
+
 %runscript
     cd "/var/www"
     exec /usr/bin/node /var/www/index.js "$@"

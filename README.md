@@ -251,18 +251,10 @@ This can be also used to access the computation results directly from the file s
 
 ## Run it using Apptainer (or commercial version: Singularity) on HPC, Server or Workstation
 
-### Using Docker image:
-
-```bash
-# Replace `apptainer` by `singularity` if you don't use appatainer
-apptainer pull --name nodemicmac.sif docker://opendronemap/nodemicmac:master
-apptainer run --bind $PWD:/var/www nodemicmac.sif
-```
-
 ### Using def file:
 ```bash
-apptainer -v build --notest nodemicmac.sif apptainer.def
-apptainer run --bind $PWD:/var/www nodemicmac.sif
+apptainer -v build --sandbox nodemicmac.sif apptainer.def
+apptainer run --writable nodemicmac.sif
 ```
 
 
