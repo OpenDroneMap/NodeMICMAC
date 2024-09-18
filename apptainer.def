@@ -16,6 +16,17 @@ Stage: spython-base
 
 %post
     su -  root # USER root
+
+    # apt-get update
+    # apt-get install -y -qq --no-install-recommends software-properties-common build-essential cmake git exiv2 libimage-exiftool-perl proj-bin gdal-bin figlet imagemagick pdal libpdal-dev libboost-all-dev libtbb-dev libssl-dev libcurl4-openssl-dev pkg-config libpth-dev curl libx11-dev python3-pip python3-setuptools python3-shapely apt-utils p7zip-full
+
+    # pip3 install -U shyaml
+    # pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org appsettings
+    # pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org utm
+    # pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org pyproj #==2.2.0
+    # pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org scikit-image
+    ln -s /lib/x86_64-linux-gnu/*.so /usr/lib/
+
     mkdir -p /var/www
 
     mkdir -p "/var/www"
