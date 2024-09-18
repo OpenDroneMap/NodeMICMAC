@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 "use strict";
 const async = require('async');
 const AWS = require('aws-sdk');
-require("aws-sdk/lib/maintenance_mode_message").suppress = true;
 const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
