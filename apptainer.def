@@ -1,17 +1,21 @@
 Bootstrap: docker
 From: opendronemap/nodemicmac:master
+Stage: spython-base
 
 %labels
     Author Sylvain POULAIN
-    Version 1.0
+    Version 1.1
     Description Apptainer container for NodeMICMAC and WebGIS with Entwine and MicMac.
 
 %environment
     export PATH=$PATH:/code/micmac/bin
     export python=$(which python3)
+    export LC_ALL=C
+    export PYTHONUNBUFFERED=1
+    export LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:/usr/lib"
 
 %post
-   
+    su -  root # USER root
     mkdir -p /var/www
 
     mkdir -p "/var/www"
