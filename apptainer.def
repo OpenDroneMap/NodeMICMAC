@@ -25,7 +25,7 @@ Stage: spython-base
     # pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org utm
     # pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org pyproj #==2.2.0
     # pip3 install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org scikit-image
-    ln -s /lib/x86_64-linux-gnu/*.so /usr/lib/
+    # ln -s /lib/x86_64-linux-gnu/*.so /usr/lib/
 
     mkdir -p /var/www
 
