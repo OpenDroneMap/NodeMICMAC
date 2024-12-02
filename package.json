@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/OpenDroneMap/NodeODM#readme",
   "dependencies": {
-    "archiver": "^3.0.0",
+    "archiver": "^7.0.1",
     "async": "^2.6.1",
     "aws-sdk": "^2.368.0",
     "body-parser": "^1.18.3",
